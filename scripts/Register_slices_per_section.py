@@ -20,7 +20,7 @@ from os import walk
 # Parameters
 # FOLDER: folder that contains all slices and all metrics
 Folder = "/volumes/projects/tract_clustering/data/all_levels/"
-
+os.chdir(Folder)
 
 # METRICS: list of metrics to register, e.g. [avf.nii.gz, ad.nii.gz]
 Metrics = [
@@ -77,10 +77,53 @@ Sacral = ["S1",
           ]
 
 Cervical_list = []
-for folder_name in Cervical:
+
+# Create array of levels to have levels in proper order
+array_levels = ["C1",
+                "C2",
+                "C3",
+                "C4",
+                "C5",
+                "C6",
+                "C7",
+                "C8",
+                "T1",
+                "T2",
+                "T3",
+                "T4",
+                "T5",
+                "T6",
+                "T7",
+                "T8",
+                "T9",
+                "T10",
+                "T11",
+                "T12",
+                "T13",
+                "L1",
+                "L2",
+                "L3",
+                "L4",
+                "L5",
+                "L6",
+                "S1",
+                "S2",
+                "S3",
+                "S4"
+]
+
+
+
+filelist= []
+for folder_name in array_levels:
     folder_path = os.path.join(Folder, folder_name)
     filename = os.path.join(folder_path, "Volume4D_sym_cleaned.nii.gz")
-    Cervical_list.append(filename)
+    for i in Cervical:
+        Cervical_list.append(filename)
+
+# TODO: remove dupl.
+
+    Cervical_list = range(filelist[0], filelist[7])
 
 print Cervical_list
 
@@ -109,11 +152,12 @@ print Sacral_list
 
 
 def preprocess_file(moving, fixed):
+    # TODO: ADD HEADER TO SAY WHAT YOU DO HERE
     # 1. Open each file
     x = nib.load(level[moving])
     y = nib.load(level[fixed])
 
-    # 2. Filter the metric you want
+    # 2. Select the metric you want
     moving = x.get_data()
     moving = moving.transpose((1, 0, 2, 3))
     moving = moving.squeeze(axis=2)
@@ -128,60 +172,71 @@ def preprocess_file(moving, fixed):
     tmp_moving = nib.Nifti1Image(moving, x.affine, x.header)
     tmp_fixed = nib.Nifti1Image(fixed, y.affine, y.header)
 
-    nib.save(tmp_moving, Folder+"/temporary_moving.nii.gz")
-    nib.save(tmp_fixed, Folder+"/temporary_fixed.nii.gz")
+    nib.save(tmp_moving, "/temporary_moving.nii.gz")
+    nib.save(tmp_fixed, "/temporary_fixed.nii.gz")
 
     return tmp_moving, tmp_fixed
 
 
 #   Register METRIC_REF(i-x) --> METRIC_REF(i) <--- METRIC_REF(i+x) for Cervical
+# TODO: don<t duplicate levels: use same code for cervical, thoracic, etc.
 #     # outputs warp(i-1->1)
 
+# TODO: chdir in working dir, remove all the absolute path (clarity),
 level = Cervical_list
 
+# TODO: unify code
+for i in range(len(filelist)):
+    if i in range(len(filelist[0]), len(filelist[7])):
 
+
+
+
+
+
+# TODO: comment
 for i in range(len(level)):
     metric = 0
 
-    if i in range(1, 4):
-        previous = 3 - i
-        print previous
-        current = 3
-        print current
+    if i in range(1, ):  # TODO: no hardcoded indices: find them using list length
+        moving_image = 3 - i
+        print moving_image
+        fixed_image = 3
+        print fixed_image
 
-        preprocess_file(previous,
-                        current,
+        preprocess_file(moving_image,
+                        fixed_image,
                         )
         # #  Register METRIC_REF(i-x) --> METRIC_REF(i)
         subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                            "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 5]",
+                            "--metric", "MeanSquares[", "temporary_fixed.nii.gz,", "temporary_moving.nii.gz, 1, 5]",
                             "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "2x2vox",
                             "--transform", "BSplineSyN[0.5,2]",
-                            "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
+                            "--metric", "MeanSquares[", "temporary_fixed.nii.gz,", "temporary_moving.nii.gz, 1, 4]",
                             "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
                             "--smoothing-sigmas", "0x0x0x0vox",
-                            "--output", Folder+"warp_tp_tc_first_"+str(previous) + "_" + str(current) + "_cervical",
+                            "--output", "[warp_tp_tc_first_"+str(moving_image) + "_" + str(fixed_image) + "_cervical, temporary_moving_out"+str(moving_image)+"to"+str(fixed_image)+".nii.gz]",
                             "--interpolation", "BSpline[3]"])
+        # TODO: display syntax for easy copy/paste on Terminal
 
-        subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                            "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
-                            "--convergence", "0x0", "--shrink-factors", "8x4", "--smoothing-sigmas", "2x2vox",
-                            "--output", Folder+"warpinit_",
-                            "--interpolation", "BSpline[3]"])
+        #
+        # subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
+        #                     "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
+        #                     "--convergence", "0x0", "--shrink-factors", "8x4", "--smoothing-sigmas", "2x2vox",
+        #                     "--output", Folder+"warpinit_",
+        #                     "--interpolation", "BSpline[3]"])
+        #
+        # subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
+        #                     "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
+        #                     "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "5x2vox",
+        #                     "--transform", "BSplineSyN[0.5,2]",
+        #                     "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
+        #                     "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
+        #                     "--smoothing-sigmas", "0x0x0x0vox",
+        #                     "--output", Folder+"warp_tp_tc_second_"+str(previous) + "_" + str(current) + "_cervical",
+        #                     "--interpolation", "BSpline[3]"])
 
-        subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                            "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
-                            "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "5x2vox",
-                            "--transform", "BSplineSyN[0.5,2]",
-                            "--metric", "MeanSquares[", Folder+"temporary_fixed.nii.gz,", Folder+"temporary_moving.nii.gz, 1, 4]",
-                            "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
-                            "--smoothing-sigmas", "0x0x0x0vox",
-                            "--output", Folder+"warp_tp_tc_second_"+str(previous) + "_" + str(current) + "_cervical",
-                            "--interpolation", "BSpline[3]"])
-
-
-        subprocess.call(['sct_concat_transfo', "-d", Folder+"temporary_fixed.nii.gz", "-w", Folder+"warp_tp_tc_first_" + str(previous) + "_" + str(current) + "_cervical0GenericAffine.mat", Folder+"warp_tp_tc_second_" + str(previous) + "_" + str(current) + "_cervical1Warp.nii.gz", "-o", Folder+"warp_tp_tc_combined_"+ str(previous) + "_" + str(current) +".nii.gz"])
-
+        # subprocess.call(['sct_concat_transfo', "-d", Folder+"temporary_fixed.nii.gz", "-w", Folder+"warp_tp_tc_first_" + str(previous) + "_" + str(current) + "_cervical0GenericAffine.mat", Folder+"warp_tp_tc_second_" + str(previous) + "_" + str(current) + "_cervical1Warp.nii.gz", "-o", Folder+"warp_tp_tc_combined_"+ str(previous) + "_" + str(current) +".nii.gz"])
 
         print i
 
@@ -193,10 +248,10 @@ for i in range(len(level)):
                             current,
                             )
             subprocess.call(['antsApplyTransforms', "--dimensionality",  "2",
-                             "--input", Folder+"temporary_fixed.nii.gz",
-                             "--output", Folder+"/Applied_warp_"+str(Metrics[m])+"_"+str(Cervical[previous])+"_on_"+str(Cervical[current])+".nii.gz",
-                             "--transform", Folder+"warpinit_0GenericAffine.mat", Folder+"warp_tp_tc_combined_"+ str(previous) + "_" + str(current) +".nii.gz",
-                             "--reference-image", Folder+"temporary_fixed.nii.gz"])
+                             "--input", "temporary_fixed.nii.gz",
+                             "--output", "/Applied_warp_"+str(Metrics[m])+"_"+str(Cervical[previous])+"_on_"+str(Cervical[current])+".nii.gz",
+                             "--transform", "warpinit_0GenericAffine.mat", "warp_tp_tc_combined_"+ str(previous) + "_" + str(current) +".nii.gz",
+                             "--reference-image", "temporary_fixed.nii.gz"])
 
     if i == 3:
         continue
