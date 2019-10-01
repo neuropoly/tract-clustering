@@ -8,7 +8,8 @@ Code tested on Python 3.7 (conda distribution).
 ## How to use
 
 Data: 
-- mount duke/projects
+- Download the [RatAtlas](https://osf.io/g7kx8/). For more information about how this dataset was generated, see [Saliani et al. Neuroimage 2019](https://www.ncbi.nlm.nih.gov/pubmed/31491525). 
+- Unzip
 
 Code:
 - Download this code:
@@ -22,7 +23,7 @@ cd tract-clustering
 pip install -e .
 ~~~
 
-Script: 
 - Open the script `registration_script_clustering_edit.py`
-- Update the variable `Folder` to the path to the data. 
+- Update the variable `Folder` to point to the unzipped rat atlas folder.
+ 
 
