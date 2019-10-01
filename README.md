@@ -1,6 +1,10 @@
 # tract-clustering
 Data-driven approach for tracts in rat histology
 
+## Dependency
+
+Code tested on Python 3.7 (conda distribution).
+
 ## How to use
 
 Data: 
