@@ -28,3 +28,6 @@ pip install -e .
 - Update the variable `Folder` to point to the unzipped rat atlas folder.
  
 
+## Internal discussions
+
+https://drive.google.com/drive/folders/1qf1YoXZsbP0wutNXvGRCQUwj5dmxw7Yv
