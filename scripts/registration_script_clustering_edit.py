@@ -1,9 +1,8 @@
+# #!/usr/bin/env python
+
 # This script loops across slices per level and registers slice i on the median slice for that level and.
 # Then, it applies the transformations on the same slices for each metric
 # outputs a 3d volume (x, y, i) for each metric.
-
-#import seaborn as sns
-import pickle
 
 
 import os
@@ -11,7 +10,6 @@ import subprocess
 import math
 import nibabel as nib
 
-from os import walk
 
 # ================================================================================================================
 def print_output(file_path):
@@ -42,7 +40,7 @@ Metrics = [
 ]
 
 # Read FOLDER that contains all slices and all metrics
-list_levels = next(walk(Folder))[1]
+list_levels = next(os.walk(Folder))[1]
 
 # Create array of levels to have levels in proper order
 Cervical = ["C1",
