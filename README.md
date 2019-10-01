@@ -3,7 +3,8 @@ Data-driven approach for tracts in rat histology
 
 ## Dependency
 
-Code tested on Python 3.7 (conda distribution).
+- Python 3.7 (conda distribution)
+- [ANTs](http://stnava.github.io/ANTs/)
 
 ## How to use
 
