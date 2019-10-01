@@ -8,10 +8,42 @@
 import os
 import subprocess
 import math
+import numpy as np
 import nibabel as nib
 
+# TODO: input individual rat samples instead of the average across rats.
+# TODO: introduce a parameters.py file with hard-coded path. Alternatively, use flags (e.g. -f FOLDER).
 
-# ================================================================================================================
+
+def preprocess_file(moving, fixed):
+    # For each image (registered image and image being registered on), the files are loaded, the metric is chosen
+    # and then temporarily saved as a new image with the appropriate image header
+
+    # 1. Open each file
+    x = nib.load(level[moving])
+    y = nib.load(level[fixed])
+
+    # 2. Select the metric you want
+    moving = x.get_data()
+    moving = moving.transpose((1, 0, 2, 3))
+    moving = moving.squeeze(axis=2)
+    moving = moving[..., metric]
+
+    fixed = y.get_data()
+    fixed = fixed.transpose((1, 0, 2, 3))
+    fixed = fixed.squeeze(axis=2)
+    fixed = fixed[..., metric]
+
+    # 3. Create a new file for each file, name it "{}_pre.nii.gz".format(p)
+    tmp_moving = nib.Nifti1Image(moving, x.affine, x.header)
+    tmp_fixed = nib.Nifti1Image(fixed, y.affine, y.header)
+
+    nib.save(tmp_moving, "temporary_moving.nii.gz")
+    nib.save(tmp_fixed, "temporary_fixed.nii.gz")
+
+    return tmp_moving, tmp_fixed
+
+
 def print_output(file_path):
     '''
     :param file_path:
@@ -20,14 +52,44 @@ def print_output(file_path):
     print("Creating file \033[0;34m" + file_path + "\033[0;0m...\n")
 
 
-#=================================================================================================================
+def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, output_folder):
+    """
+    Split each 3D volume across z, and concatenate metrics along the 4th dimension. The 3rd dimension is a singleton.
+    :param list_files:
+    :return:
+    """
+
+    list_nii = []
+    for file in list_files:
+        list_nii.append(nib.Nifti1Image.load(file))
+
+    nz = list_nii[0].get_data().shape[2]
+    for i_z in range(nz):
+        data_2d_metrics = \
+            np.stack([list_nii[i].get_data()[:, :, i_z, np.newaxis] for i in range(len(list_files))], axis=3)
+        nii_metric = nib.Nifti1Image(data_2d_metrics, list_nii[0].affine, list_nii[0].header)
+        nib.save(nii_metric, os.path.join(output_folder, 'AtlasRat_AllMetrics_z{}'.format(i_z)))
+
 
 commandNameTemp = os.path.basename(__file__).strip(".py")
 # Parameters
 # FOLDER: folder that contains all slices and all metrics
-Folder = "/Volumes/projects/tract_clustering/data/all_levels/"
+Folder = "/Users/julien/Desktop/AtlasRat"
+output_folder = 'results'
+
 os.chdir(Folder)
 
+os.makedirs(output_folder, exist_ok=True)
+# os.mkdir(output_folder)
+
+
+list_files = [
+    'AtlasRat_AD.nii.gz',
+    'AtlasRat_AED.nii.gz',
+    'AtlasRat_GR.nii.gz',
+    'AtlasRat_MT.nii.gz',
+    'AtlasRat_MVF.nii.gz',
+]
 
 # METRICS: list of metrics to register, e.g. [avf.nii.gz, ad.nii.gz]
 Metrics = [
@@ -40,7 +102,7 @@ Metrics = [
 ]
 
 # Read FOLDER that contains all slices and all metrics
-list_levels = next(os.walk(Folder))[1]
+# list_levels = next(os.walk(Folder))[1]
 
 # Create array of levels to have levels in proper order
 Cervical = ["C1",
@@ -84,43 +146,18 @@ Thoracic_list = []
 Lumbar_list = []
 Sacral_list = []
 
+split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, output_folder)
 
 level_array_list = [Cervical, Thoracic, Lumbar, Sacral]
 levels = [Cervical_list, Thoracic_list, Lumbar_list, Sacral_list]
+i_z = 0
 for level_array_number, level_array in enumerate(level_array_list):
     for folder_name in level_array:
-        folder_path = os.path.join(Folder, folder_name)
-        filename = os.path.join(folder_path, "Volume4D_sym_cleaned.nii.gz")
-        levels[level_array_number].append(filename)
-
-
-def preprocess_file(moving, fixed):
-    # For each image (registered image and image being registered on), the files are loaded, the metric is chosen
-    # and then temporarily saved as a new image with the appropriate image header
-    
-    # 1. Open each file
-    x = nib.load(level[moving])
-    y = nib.load(level[fixed])
-
-    # 2. Select the metric you want
-    moving = x.get_data()
-    moving = moving.transpose((1, 0, 2, 3))
-    moving = moving.squeeze(axis=2)
-    moving = moving[..., metric]
-
-    fixed = y.get_data()
-    fixed = fixed.transpose((1, 0, 2, 3))
-    fixed = fixed.squeeze(axis=2)
-    fixed = fixed[..., metric]
-
-    # 3. Create a new file for each file, name it "{}_pre.nii.gz".format(p)
-    tmp_moving = nib.Nifti1Image(moving, x.affine, x.header)
-    tmp_fixed = nib.Nifti1Image(fixed, y.affine, y.header)
-
-    nib.save(tmp_moving, "temporary_moving.nii.gz")
-    nib.save(tmp_fixed, "temporary_fixed.nii.gz")
-
-    return tmp_moving, tmp_fixed
+        # folder_path = os.path.join(Folder, folder_name)
+        # filename = os.path.join(folder_path, "Volume4D_sym_cleaned.nii.gz")
+        levels[level_array_number].append('AtlasRat_AllMetrics_z{}'.format(i_z))
+        # TODO: have file names with suffix C2, C3, etc.
+        i_z += 1
 
 
 #   Register METRIC_REF(i-x) --> METRIC_REF(i) <--- METRIC_REF(i+x) for Cervical
