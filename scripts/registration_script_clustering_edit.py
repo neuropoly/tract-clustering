@@ -13,6 +13,7 @@ import nibabel as nib
 
 # TODO: input individual rat samples instead of the average across rats.
 # TODO: introduce a parameters.py file with hard-coded path. Alternatively, use flags (e.g. -f FOLDER).
+# TODO: try doing the registration across adjacent slices and concatenate warping fields (more accurate registration)
 
 
 def preprocess_file(moving, fixed):
