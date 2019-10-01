@@ -27,7 +27,7 @@ def print_output(file_path):
 commandNameTemp = os.path.basename(__file__).strip(".py")
 # Parameters
 # FOLDER: folder that contains all slices and all metrics
-Folder = "/Users/hanam/Documents/Tracts_testing_2/all_levels/"
+Folder = "/Volumes/projects/tract_clustering/data/all_levels/"
 os.chdir(Folder)
 
 
@@ -80,39 +80,6 @@ Sacral = ["S1",
           "S3",
           "S4"]
 
-
-# Create array of levels to have levels in proper order
-array_levels = ["C1",
-                "C2",
-                "C3",
-                "C4",
-                "C5",
-                "C6",
-                "C7",
-                "C8",
-                "T1",
-                "T2",
-                "T3",
-                "T4",
-                "T5",
-                "T6",
-                "T7",
-                "T8",
-                "T9",
-                "T10",
-                "T11",
-                "T12",
-                "T13",
-                "L1",
-                "L2",
-                "L3",
-                "L4",
-                "L5",
-                "L6",
-                "S1",
-                "S2",
-                "S3",
-                "S4"]
 
 Cervical_list = []
 Thoracic_list = []
@@ -181,12 +148,12 @@ for level_number, level in enumerate(levels):
                print_output(applied_warp + "1Warp.nii.gz")
                print_output(applied_warp + "0GenericAffine.mat")
                subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                                    "--metric", "MI[", "temporary_fixed.nii.gz,", "temporary_moving.nii.gz, 1, 5]",
-                                    "--convergence", "100x50", "--shrink-factors", "4x2", "--smoothing-sigmas", "2x2vox",
+                                    "--metric", "MeanSquares[", "temporary_fixed.nii.gz,", "temporary_moving.nii.gz, 1, 5]",
+                                    "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "2x2vox",
                                     "--transform", "BSplineSyN[0.15,2, 0]",
                                     "--metric", "MeanSquares[", "temporary_fixed.nii.gz,", "temporary_moving.nii.gz, 1, 4]",
-                                    "--convergence", "200x50x20", "--shrink-factors", "8x4x2",
-                                    "--smoothing-sigmas", "0x0x0vox",
+                                    "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
+                                    "--smoothing-sigmas", "0x0x0x0vox",
                                     "--output", applied_warp, "--interpolation", "BSpline[3]"])
 
                # "--output", applied_warp, "temporary_moving_out" + str(moving_image) + "to" + str(
@@ -211,6 +178,7 @@ for level_number, level in enumerate(levels):
                 moving_image = i
                 fixed_image = (central_level - 1)
                 preprocess_file(moving_image, fixed_image,)
+                #applied_warp = "warp_" + str(moving_image) + "_" + str(fixed_image) + "_" + level_names[level_number]
                 print_output(applied_warp + "1Warp.nii.gz")
                 print_output(applied_warp + "0GenericAffine.mat")
                 # #  Register METRIC_REF(i +1) --> METRIC_REF(i)
