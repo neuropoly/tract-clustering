@@ -23,16 +23,10 @@ Metrics = [
     "MVF_corrected"
 ]
 
-Cervical = ["C1",
-            "C2",
-            "C3",
-            "C4",
-            "C5",
-            "C6",
-            "C7",
-            "C8"]
-
-Thoracic = ["T1",
+# TODO: clean below
+regions = {
+    'cervical': ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"],
+    'thoracic': ["T1",
             "T2",
             "T3",
             "T4",
@@ -44,16 +38,50 @@ Thoracic = ["T1",
             "T10",
             "T11",
             "T12",
-            "T13"]
-
-Lumbar = ["L1",
+            "T13"],
+    'lumbar': ["L1",
           "L2",
           "L3",
           "L4",
           "L5",
-          "L6"]
-
-Sacral = ["S1",
+          "L6"],
+    'sacral': ["S1",
           "S2",
           "S3",
-          "S4"]
+          "S4"],
+    }
+
+# Cervical = ["C1",
+#             "C2",
+#             "C3",
+#             "C4",
+#             "C5",
+#             "C6",
+#             "C7",
+#             "C8"]
+#
+# Thoracic = ["T1",
+#             "T2",
+#             "T3",
+#             "T4",
+#             "T5",
+#             "T6",
+#             "T7",
+#             "T8",
+#             "T9",
+#             "T10",
+#             "T11",
+#             "T12",
+#             "T13"]
+#
+# Lumbar = ["L1",
+#           "L2",
+#           "L3",
+#           "L4",
+#           "L5",
+#           "L6"]
+#
+# Sacral = ["S1",
+#           "S2",
+#           "S3",
+#           "S4"]

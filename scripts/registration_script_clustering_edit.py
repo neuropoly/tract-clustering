@@ -84,7 +84,7 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files):
 # SCRIPT STARTS HERE
 # ======================================================================================================================
 
-commandNameTemp = os.path.basename(__file__).strip(".py")
+# commandNameTemp = os.path.basename(__file__).strip(".py")
 
 os.makedirs(os.path.join(params.FOLDER, params.OUTPUT_FOLDER), exist_ok=True)
 os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
@@ -96,7 +96,10 @@ Sacral_list = []
 
 split_each_3d_volume_across_z_and_concatenate_metrics_along_t([os.path.join(params.FOLDER, i) for i in params.list_files])
 
-level_array_list = [params.Cervical, params.Thoracic, params.Lumbar, params.Sacral]
+level_array_list = [params.regions['cervical'],
+                    params.regions['thoracic'],
+                    params.regions['lumbar'],
+                    params.regions['sacral']]
 levels = [Cervical_list, Thoracic_list, Lumbar_list, Sacral_list]
 i_z = 0
 for level_array_number, level_array in enumerate(level_array_list):
@@ -107,19 +110,13 @@ for level_array_number, level_array in enumerate(level_array_list):
         # TODO: have file names with suffix C2, C3, etc.
         i_z += 1
 
-
-#   Register METRIC_REF(i-x) --> METRIC_REF(i) <--- METRIC_REF(i+x) for Cervical
-#     # outputs warp(i-1->1)
-
-
-level_names = ["cervical", "thoracic", "lumbar", "sacral"]
 # For each level, the registration will follow this logic:
 # Let's assume 7 slices in a region. The central slice is 4.
 # - slice 2 will be registered to slice 3
 # - slice 1 will be registered to slice 3
 # - slice 0 will be registered to slice 3
 for level_number, level in enumerate(levels):
-    print("\033[1;35mNow processing region: " + level_names[level_number] + "...\033[0;0m")
+    print("\033[1;35mNow processing region: " + params.regions.key[level_number] + "...\033[0;0m")
     for i in range(len(level)):
         metric = 0
         central_level = int(math.ceil(len(level) / 2))
