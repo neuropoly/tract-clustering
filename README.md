@@ -33,7 +33,8 @@ python registration_script_clustering_edit.py
 
 - Run Jupyter notebook to perform clustering:
 ~~~
-jupyter 
+jupyter notebook notebooks/tract_clustering_enforced_symmetry-clean.ipynb 
+~~~ 
 
 ## Internal discussions
 
