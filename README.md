@@ -31,6 +31,9 @@ pip install -e .
 python registration_script_clustering_edit.py
 ~~~
 
+- Run Jupyter notebook to perform clustering:
+~~~
+jupyter 
 
 ## Internal discussions
 
