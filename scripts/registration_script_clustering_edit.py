@@ -82,7 +82,7 @@ commandNameTemp = os.path.basename(__file__).strip(".py")
 Folder = "/Users/hanam/Desktop/AtlasRat"
 output_folder = 'results'
 
-os.makedirs(os.path.join(Folder, output_folder))#, exist_ok=True)
+os.makedirs(os.path.join(Folder, output_folder), exist_ok=True)
 os.chdir(os.path.join(Folder, output_folder))
 
 
