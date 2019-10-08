@@ -10,19 +10,25 @@ import subprocess
 import math
 import numpy as np
 import nibabel as nib
-#import Parameters
-
-#subprocess.call(Parameters)
 
 
 # TODO: input individual rat samples instead of the average across rats.
 # TODO: introduce a parameters.py file with hard-coded path. Alternatively, use flags (e.g. -f FOLDER).
 # TODO: try doing the registration across adjacent slices and concatenate warping fields (more accurate registration)
 
+# Global parameters
+FOLDER = '/Users/hanam/Desktop/AtlasRat'  # Path to folder that contains all slices and all metrics
+OUTPUT_FOLDER = 'results'
+
 
 def preprocess_file(moving, fixed):
-    # For each image (registered image and image being registered on), the files are loaded, the metric is chosen
-    # and then temporarily saved as a new image with the appropriate image header
+    """
+    For each image (registered image and image being registered on), the files are loaded, the metric is chosen
+    and then temporarily saved as a new image with the appropriate image header
+    :param moving:
+    :param fixed:
+    :return:
+    """
 
     # 1. Open each file
     x = nib.load(level[moving])
@@ -50,10 +56,11 @@ def preprocess_file(moving, fixed):
 
 
 def print_output(file_path):
-    '''
+    """
+    Nice printout with colors
     :param file_path:
     :return: prints message that script is now outputting file with path corresponding to file_path
-    '''
+    """
     print("Creating file \033[0;34m" + file_path + "\033[0;0m...\n")
 
 
@@ -76,14 +83,13 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files):
         nib.save(nii_metric, 'AtlasRat_AllMetrics_z{}'.format(i_z))
 
 
-commandNameTemp = os.path.basename(__file__).strip(".py")
-# Parameters
-# FOLDER: folder that contains all slices and all metrics
-Folder = "/Users/hanam/Desktop/AtlasRat"
-output_folder = 'results'
+# SCRIPT STARTS HERE
+# ======================================================================================================================
 
-os.makedirs(os.path.join(Folder, output_folder), exist_ok=True)
-os.chdir(os.path.join(Folder, output_folder))
+commandNameTemp = os.path.basename(__file__).strip(".py")
+
+os.makedirs(os.path.join(FOLDER, OUTPUT_FOLDER), exist_ok=True)
+os.chdir(os.path.join(FOLDER, OUTPUT_FOLDER))
 
 
 list_files = [
@@ -149,7 +155,7 @@ Thoracic_list = []
 Lumbar_list = []
 Sacral_list = []
 
-split_each_3d_volume_across_z_and_concatenate_metrics_along_t([os.path.join(Folder, i) for i in list_files])
+split_each_3d_volume_across_z_and_concatenate_metrics_along_t([os.path.join(FOLDER, i) for i in list_files])
 
 level_array_list = [Cervical, Thoracic, Lumbar, Sacral]
 levels = [Cervical_list, Thoracic_list, Lumbar_list, Sacral_list]
