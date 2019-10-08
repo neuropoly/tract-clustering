@@ -10,6 +10,10 @@ import subprocess
 import math
 import numpy as np
 import nibabel as nib
+#import Parameters
+
+#subprocess.call(Parameters)
+
 
 # TODO: input individual rat samples instead of the average across rats.
 # TODO: introduce a parameters.py file with hard-coded path. Alternatively, use flags (e.g. -f FOLDER).
@@ -75,10 +79,10 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files):
 commandNameTemp = os.path.basename(__file__).strip(".py")
 # Parameters
 # FOLDER: folder that contains all slices and all metrics
-Folder = "/Users/julien/Desktop/AtlasRat"
+Folder = "/Users/hanam/Desktop/AtlasRat"
 output_folder = 'results'
 
-os.makedirs(os.path.join(Folder, output_folder), exist_ok=True)
+os.makedirs(os.path.join(Folder, output_folder))#, exist_ok=True)
 os.chdir(os.path.join(Folder, output_folder))
 
 
@@ -160,10 +164,8 @@ for level_array_number, level_array in enumerate(level_array_list):
 
 
 #   Register METRIC_REF(i-x) --> METRIC_REF(i) <--- METRIC_REF(i+x) for Cervical
-# TODO: don<t duplicate levels: use same code for cervical, thoracic, etc. DONE
 #     # outputs warp(i-1->1)
 
-# TODO: chdir in working dir, remove all the absolute path (clarity), DONE
 
 level_names = ["cervical", "thoracic", "lumbar", "sacral"]
 # For each level, the registration will follow this logic:
@@ -188,11 +190,11 @@ for level_number, level in enumerate(levels):
                # print_output(applied_warp + "0GenericAffine.mat")
                cmd = ['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
                                     "--metric", "MeanSquares[", "temporary_fixed.nii,", "temporary_moving.nii, 1, 5]",
-                                    "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "2x2vox",
-                                    "--transform", "BSplineSyN[0.15, 2, 0]",
+                                    "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "4x2vox",
+                                    "--transform", "BSplineSyN[0.5, 2, 0]",
                                     "--metric", "MeanSquares[", "temporary_fixed.nii,", "temporary_moving.nii, 1, 4]",
                                     "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
-                                    "--smoothing-sigmas", "0x0x0x0vox",
+                                    "--smoothing-sigmas", "4x2x1x0vox",
                                     "--output", "[", applied_warp, ",temporary_moving_reg.nii]", "--interpolation", "BSpline[3]"]
                print(' '.join(cmd))
                subprocess.call(cmd)
@@ -233,18 +235,20 @@ for level_number, level in enumerate(levels):
                 print_output(applied_warp + "1Warp.nii.gz")
                 print_output(applied_warp + "0GenericAffine.mat")
                 # #  Register METRIC_REF(i +1) --> METRIC_REF(i)
-                subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                                     "--metric", "MeanSquares[", "temporary_fixed.nii.gz,",
-                                     "temporary_moving.nii.gz, 1, 5]",
+                cmd = ['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
+                                     "--metric", "MeanSquares[", "temporary_fixed.nii,",
+                                     "temporary_moving.nii, 1, 5]",
                                      "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas",
-                                     "2x2vox",
+                                     "4x2vox",
                                      "--transform", "BSplineSyN[0.5,2]",
-                                     "--metric", "MeanSquares[", "temporary_fixed.nii.gz,",
-                                     "temporary_moving.nii.gz, 1, 4]",
+                                     "--metric", "MeanSquares[", "temporary_fixed.nii,",
+                                     "temporary_moving.nii, 1, 4]",
                                      "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
-                                     "--smoothing-sigmas", "0x0x0x0vox",
-                                     "--output", applied_warp,
-                                     "--interpolation", "BSpline[3]"])
+                                     "--smoothing-sigmas", "4x2x1x0vox",
+                                     "--output", "[", applied_warp, ",temporary_moving_reg.nii]",
+                                     "--interpolation", "BSpline[3]"]
+                print(' '.join(cmd))
+                subprocess.call(cmd)
 
                 #subprocess.call(['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
                 #                "--metric", "MeanSquares[",  "temporary_fixed.nii.gz,",
@@ -281,14 +285,16 @@ for level_number, level in enumerate(levels):
                     preprocess_file(moving_image,
                                     fixed_image,
                                     )
-                    subprocess.call(['antsApplyTransforms', "--dimensionality", "2",
-                                        "--input", "temporary_fixed.nii.gz",
+                    cmd = ['antsApplyTransforms', "--dimensionality", "2",
+                                        "--input", "temporary_moving.nii",
                                         "--output", "Applied_warp_" + str(Metrics[m]) + "_" + str(
                             level_array_list[level_number][moving_image]) + "_on_" + str(level_array_list[level_number][fixed_image]) + ".nii.gz",
                                         "--transform",
                                         applied_warp + "1Warp.nii.gz",
                                         applied_warp + "0GenericAffine.mat",
-                                        "--reference-image", "temporary_fixed.nii.gz"])
+                                        "--reference-image", "temporary_fixed.nii"]
+                    print(' '.join(cmd))
+                    subprocess.call(cmd)
 
   # # Concatenate the volumes per section
     # for i in len(level):
