@@ -26,7 +26,11 @@ pip install -e .
 
 - Open the script `registration_script_clustering_edit.py`
 - Update the variable `Folder` to point to the unzipped rat atlas folder.
- 
+- Run:
+~~~
+python registration_script_clustering_edit.py
+~~~
+
 
 ## Internal discussions
 
