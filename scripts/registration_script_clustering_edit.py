@@ -11,14 +11,12 @@ import math
 import numpy as np
 import nibabel as nib
 
+import params
+
 
 # TODO: input individual rat samples instead of the average across rats.
-# TODO: introduce a parameters.py file with hard-coded path. Alternatively, use flags (e.g. -f FOLDER).
+# TODO: introduce a params.py file with hard-coded path. Alternatively, use flags (e.g. -f FOLDER).
 # TODO: try doing the registration across adjacent slices and concatenate warping fields (more accurate registration)
-
-# Global parameters
-FOLDER = '/Users/julien/Desktop/AtlasRat'  # Path to folder that contains all slices and all metrics
-OUTPUT_FOLDER = 'results'
 
 
 def preprocess_file(moving, fixed):
@@ -88,76 +86,17 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files):
 
 commandNameTemp = os.path.basename(__file__).strip(".py")
 
-os.makedirs(os.path.join(FOLDER, OUTPUT_FOLDER), exist_ok=True)
-os.chdir(os.path.join(FOLDER, OUTPUT_FOLDER))
-
-
-list_files = [
-    'AtlasRat_AD.nii.gz',
-    'AtlasRat_AED.nii.gz',
-    'AtlasRat_GR.nii.gz',
-    'AtlasRat_MT.nii.gz',
-    'AtlasRat_MVF.nii.gz',
-]
-
-# METRICS: list of metrics to register, e.g. [avf.nii.gz, ad.nii.gz]
-Metrics = [
-    "Axon_Density",
-    "axon_equiv_diameter",
-    # "AVF_corrected",
-    "GR_corrected",
-    "Myelin_thickness",
-    "MVF_corrected"
-]
-
-# Read FOLDER that contains all slices and all metrics
-# list_levels = next(os.walk(Folder))[1]
-
-# Create array of levels to have levels in proper order
-Cervical = ["C1",
-            "C2",
-            "C3",
-            "C4",
-            "C5",
-            "C6",
-            "C7",
-            "C8"]
-
-Thoracic = ["T1",
-            "T2",
-            "T3",
-            "T4",
-            "T5",
-            "T6",
-            "T7",
-            "T8",
-            "T9",
-            "T10",
-            "T11",
-            "T12",
-            "T13"]
-
-Lumbar = ["L1",
-          "L2",
-          "L3",
-          "L4",
-          "L5",
-          "L6"]
-
-Sacral = ["S1",
-          "S2",
-          "S3",
-          "S4"]
-
+os.makedirs(os.path.join(params.FOLDER, params.OUTPUT_FOLDER), exist_ok=True)
+os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
 
 Cervical_list = []
 Thoracic_list = []
 Lumbar_list = []
 Sacral_list = []
 
-split_each_3d_volume_across_z_and_concatenate_metrics_along_t([os.path.join(FOLDER, i) for i in list_files])
+split_each_3d_volume_across_z_and_concatenate_metrics_along_t([os.path.join(params.FOLDER, i) for i in params.list_files])
 
-level_array_list = [Cervical, Thoracic, Lumbar, Sacral]
+level_array_list = [params.Cervical, params.Thoracic, params.Lumbar, params.Sacral]
 levels = [Cervical_list, Thoracic_list, Lumbar_list, Sacral_list]
 i_z = 0
 for level_array_number, level_array in enumerate(level_array_list):
@@ -206,10 +145,10 @@ for level_number, level in enumerate(levels):
             subprocess.call(cmd)
 
             # Apply transformation to all metrics
-            for m in range(0, len(Metrics)):
+            for m in range(0, len(params.Metrics)):
                 metric = m
                 preprocess_file(moving_image, fixed_image, )
-                print_output("Applied_warp_" + str(Metrics[m]) + "_" + str(
+                print_output("Applied_warp_" + str(params.Metrics[m]) + "_" + str(
                     level_array_list[level_number][moving_image]) + "_on_" + str(
                     level_array_list[level_number][fixed_image]) + ".nii.gz")
                 cmd = ['antsApplyTransforms',
@@ -218,7 +157,7 @@ for level_number, level in enumerate(levels):
                        "--input",
                        "temporary_moving.nii",
                        "--output",
-                       "Applied_warp_" + str(Metrics[m]) + "_" + str(
+                       "Applied_warp_" + str(params.Metrics[m]) + "_" + str(
                            level_array_list[level_number][moving_image]) + "_on_" + str(
                            level_array_list[level_number][fixed_image]) + ".nii.gz",
                        "--transform",
@@ -255,14 +194,14 @@ for level_number, level in enumerate(levels):
             print(' '.join(cmd))
             subprocess.call(cmd)
 
-            for m in range(0, len(Metrics)):
+            for m in range(0, len(params.Metrics)):
                 metric = m
                 preprocess_file(moving_image,
                                 fixed_image,
                                 )
                 cmd = ['antsApplyTransforms', "--dimensionality", "2",
                        "--input", "temporary_moving.nii",
-                       "--output", "Applied_warp_" + str(Metrics[m]) + "_" + str(
+                       "--output", "Applied_warp_" + str(params.Metrics[m]) + "_" + str(
                         level_array_list[level_number][moving_image]) + "_on_" + str(
                         level_array_list[level_number][fixed_image]) + ".nii.gz",
                        "--transform",
