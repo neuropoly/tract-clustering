@@ -9,13 +9,25 @@
 FOLDER = '/Users/julien/Desktop/AtlasRat'  # Path to folder that contains all slices and all metrics
 OUTPUT_FOLDER = 'results'
 
+file_prefix = 'AtlasRat_'
+
 input_file_prefix = [
     'AtlasRat_AD',
     'AtlasRat_AED',
     'AtlasRat_GR',
     'AtlasRat_MT',
     'AtlasRat_MVF',
+    'AtlasRat_mask_WM',
 ]
+
+metrics = [
+    'AD',
+    'AED',
+    'GR',
+    'MT',
+    'MVF'
+    ]
+# input_file_mask = 'AtlasRat_mask_WM.nii.gz'
 
 # Metric used as reference for estimating the warping field, which will then be applied to all other metrics
 input_file_prefix_reference = 'AtlasRat_AD'
@@ -41,4 +53,6 @@ reference_level = {
 # PARAMETERS THAT ARE USED INTERNALLY BY THE CODE
 # ======================================================================================================================
 
-file_prefix = 'AtlasRat_AllMetrics_'
+file_prefix_all = 'AtlasRat_AllMetrics_'
+file_mask_prefix = 'AtlasRat_mask_WM_'
+folder_concat_region = 'concat_within_region'
