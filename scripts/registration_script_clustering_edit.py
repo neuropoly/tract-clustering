@@ -77,8 +77,8 @@ def register_moving_to_fixed(level_moving, level_fixed, copy_moving=False):
     """
     if not copy_moving:
         # Preprocess images (reorient, etc.) to be compatible with ANTs
-        file_tmp_moving, file_tmp_fixed = preprocess_file(params.file_prefix + level_moving + ext,
-                                                          params.file_prefix + level_fixed + ext,
+        file_tmp_moving, file_tmp_fixed = preprocess_file(params.file_prefix_all + level_moving + ext,
+                                                          params.file_prefix_all + level_fixed + ext,
                                                           metric=params.input_file_prefix_reference)
         applied_warp = 'warp_{}_to_{}_'.format(level_moving, level_fixed)
         # #  Register METRIC_REF(i-x) --> METRIC_REF(i)
@@ -98,8 +98,8 @@ def register_moving_to_fixed(level_moving, level_fixed, copy_moving=False):
     # Apply transformation to all metrics
     for file in params.input_file_prefix:
         # Extract 2d slice for specific metric
-        file_tmp_moving, file_tmp_fixed = preprocess_file(params.file_prefix + level_moving + ext,
-                                                          params.file_prefix + level_fixed + ext,
+        file_tmp_moving, file_tmp_fixed = preprocess_file(params.file_prefix_all + level_moving + ext,
+                                                          params.file_prefix_all + level_fixed + ext,
                                                           metric=file)
         file_output = file + '_' + level_moving + '_to_' + level_fixed + ext
         print_output(file_output)
@@ -126,6 +126,7 @@ def register_moving_to_fixed(level_moving, level_fixed, copy_moving=False):
             print(' '.join(cmd))
             subprocess.call(cmd)
 
+
 def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, level_array_list_flat):
     """
     Split each 3D volume across z, and concatenate metrics along the 4th dimension. The 3rd dimension is a singleton.
@@ -143,9 +144,10 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, le
         data_2d_metrics = \
             np.stack([list_nii[i].get_data()[:, :, i_z, np.newaxis] for i in range(len(list_files))], axis=3)
         nii_metric = nib.Nifti1Image(data_2d_metrics, list_nii[0].affine, list_nii[0].header)
-        nib.save(nii_metric, params.file_prefix + '{}'.format(level_array_list_flat[i_z]))
+        nib.save(nii_metric, params.file_prefix_all + '{}'.format(level_array_list_flat[i_z]))
 
     return nii_metric.shape[0:2]
+
 
 # SCRIPT STARTS HERE
 # ======================================================================================================================
@@ -212,14 +214,21 @@ for region, levels in params.regions.items():
                                      copy_moving=True)
 
 # Concatenate data for each region, according to: (x, y, z, metric)
-ofolder = 'concat_within_region'
-os.makedirs(ofolder, exist_ok=True)
+os.makedirs(params.folder_concat_region, exist_ok=True)
 for region, levels in params.regions.items():
     print("\033[1;35mConcatenate region: " + region + "...\033[0;0m")
-    data4d = np.zeros([nx, ny, len(levels), len(params.input_file_prefix)])
-    for file_metrics in params.input_file_prefix:
+    # Save metrics
+    data4d = np.zeros([nx, ny, len(levels), len(params.metrics)])
+    for metric in params.metrics:
         for level in levels:
-            nii2d = nib.Nifti1Image.load(file_metrics + '_' + level + '_to_' + params.reference_level[region] + ext)
-            data4d[:, :, levels.index(level), params.input_file_prefix.index(file_metrics)] = nii2d.get_data()
+            nii2d = nib.Nifti1Image.load(params.file_prefix + metric + '_' + level + '_to_' + params.reference_level[region] + ext)
+            data4d[:, :, levels.index(level), params.metrics.index(metric)] = nii2d.get_data()
     nii4d = nib.Nifti1Image(data4d, nii2d.affine, nii2d.header)
-    nib.save(nii4d, os.path.join(ofolder, params.file_prefix + region + ext))
+    nib.save(nii4d, os.path.join(params.folder_concat_region, params.file_prefix_all + region + ext))
+    # Save mask
+    data3d = np.zeros([nx, ny, len(levels)])
+    for level in levels:
+        nii2d = nib.Nifti1Image.load(params.file_prefix + 'mask_WM' + '_' + level + '_to_' + params.reference_level[region] + ext)
+        data3d[:, :, levels.index(level)] = nii2d.get_data()
+    nii3d = nib.Nifti1Image(data3d, nii2d.affine, nii2d.header)
+    nib.save(nii3d, os.path.join(params.folder_concat_region, params.file_mask_prefix + region + ext))
