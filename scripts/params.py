@@ -16,6 +16,10 @@ input_file_prefix = [
     'AtlasRat_MT',
     'AtlasRat_MVF',
 ]
+
+# Metric used as reference for estimating the warping field, which will then be applied to all other metrics
+input_file_prefix_reference = 'AtlasRat_AD'
+
 input_file_ext = '.nii.gz'
 
 regions = {
@@ -25,7 +29,13 @@ regions = {
     'sacral': ["S1", "S2", "S3", "S4"],
     }
 
-regions_ordered = ['cervical', 'thoracic', 'lumbar', 'sacral']
+# Reference destination slice for the registration, per region
+reference_level = {
+    'cervical': 'C4',
+    'thoracic': 'T7',
+    'lumbar': 'L3',
+    'sacral': 'S2',
+    }
 
 
 # PARAMETERS THAT ARE USED INTERNALLY BY THE CODE
