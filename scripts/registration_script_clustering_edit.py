@@ -19,38 +19,41 @@ import params
 # TODO: try doing the registration across adjacent slices and concatenate warping fields (more accurate registration)
 
 
-def preprocess_file(moving, fixed):
+def preprocess_file(file_moving, file_fixed):
     """
     For each image (registered image and image being registered on), the files are loaded, the metric is chosen
     and then temporarily saved as a new image with the appropriate image header
     :param moving:
     :param fixed:
-    :return:
+    :return: output filenames for moving and fixed
     """
 
     # 1. Open each file
-    x = nib.load(level[moving])
-    y = nib.load(level[fixed])
+    nii_moving = nib.load(file_moving)
+    nii_fixed = nib.load(file_fixed)
 
     # 2. Select the metric you want
-    moving = x.get_data()
-    moving = moving.transpose((1, 0, 2, 3))
-    moving = moving.squeeze(axis=2)
-    moving = moving[..., metric]
+    data_moving = nii_moving.get_data()
+    data_moving = data_moving.transpose((1, 0, 2, 3))
+    data_moving = data_moving.squeeze(axis=2)
+    data_moving = data_moving[..., metric]
 
-    fixed = y.get_data()
-    fixed = fixed.transpose((1, 0, 2, 3))
-    fixed = fixed.squeeze(axis=2)
-    fixed = fixed[..., metric]
+    data_fixed = nii_fixed.get_data()
+    data_fixed = data_fixed.transpose((1, 0, 2, 3))
+    data_fixed = data_fixed.squeeze(axis=2)
+    data_fixed = data_fixed[..., metric]
 
     # 3. Create a new file for each file, name it "{}_pre.nii.gz".format(p)
-    tmp_moving = nib.Nifti1Image(moving, x.affine, x.header)
-    tmp_fixed = nib.Nifti1Image(fixed, y.affine, y.header)
+    nii_moving_new = nib.Nifti1Image(data_moving, nii_moving.affine, nii_moving.header)
+    nii_fixed_new = nib.Nifti1Image(data_fixed, nii_fixed.affine, nii_fixed.header)
 
-    nib.save(tmp_moving, "temporary_moving.nii")
-    nib.save(tmp_fixed, "temporary_fixed.nii")
+    file_tmp_moving = 'temporary_moving.nii'
+    file_tmp_fixed = 'temporary_fixed.nii'
 
-    return tmp_moving, tmp_fixed
+    nib.save(nii_moving_new, file_tmp_moving)
+    nib.save(nii_fixed_new, file_tmp_fixed)
+
+    return file_tmp_moving, file_tmp_fixed
 
 
 def print_output(file_path):
@@ -62,10 +65,59 @@ def print_output(file_path):
     print("Creating file \033[0;34m" + file_path + "\033[0;0m...\n")
 
 
-def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files):
+def register_moving_to_fixed(level_moving, level_fixed):
+    """
+    Register 2D moving image to 2D fixed image with ANTs, and apply transformations to all metrics
+    :param level_moving: str: level name of moving image
+    :param level_fixed:  str: level name of fixed image
+    :return:
+    """
+    # Preprocess images (reorient, etc.) to be compatible with ANTs
+    file_tmp_moving, file_tmp_fixed = preprocess_file(params.file_prefix + level_moving + ext,
+                                                      params.file_prefix + level_fixed + ext)
+
+    applied_warp = 'warp_{}_to_{}_'.format(level_moving, level_fixed)
+    # #  Register METRIC_REF(i-x) --> METRIC_REF(i)
+    # print_output(applied_warp + "1Warp.nii.gz")
+    # print_output(applied_warp + "0GenericAffine.mat")
+    cmd = ['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
+           "--metric", "MeanSquares[", file_tmp_fixed, ",", file_tmp_moving, ", 1, 5]",
+           "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "4x2vox",
+           "--transform", "BSplineSyN[0.5, 2, 0]",
+           "--metric", "MeanSquares[", file_tmp_fixed, ",", file_tmp_moving, ", 1, 4]",
+           "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
+           "--smoothing-sigmas", "4x2x1x0vox",
+           "--output", "[", applied_warp, ",temporary_moving_reg.nii]", "--interpolation", "BSpline[3]"]
+    print(' '.join(cmd))
+    subprocess.call(cmd)
+
+    # Apply transformation to all metrics
+    for file in params.input_file_prefix:
+        file_output = file + '_' + level_moving + '_to_' + level_fixed + ext
+        print_output(file_output)
+        cmd = ['antsApplyTransforms',
+               "--dimensionality",
+               "2",
+               "--input",
+               file_tmp_moving,
+               "--output",
+               file_output,
+               "--transform",
+               applied_warp + "1Warp.nii.gz",
+               applied_warp + "0GenericAffine.mat",
+               "--reference-image",
+               file_tmp_fixed,
+               "--interpolation",
+               "BSpline[3]",
+               ]
+        print(' '.join(cmd))
+        subprocess.call(cmd)
+
+def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, level_array_list_flat):
     """
     Split each 3D volume across z, and concatenate metrics along the 4th dimension. The 3rd dimension is a singleton.
     :param list_files:
+    :param level_array_list_flat: List of ordered levels to use for output file name
     :return:
     """
 
@@ -78,13 +130,15 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files):
         data_2d_metrics = \
             np.stack([list_nii[i].get_data()[:, :, i_z, np.newaxis] for i in range(len(list_files))], axis=3)
         nii_metric = nib.Nifti1Image(data_2d_metrics, list_nii[0].affine, list_nii[0].header)
-        nib.save(nii_metric, 'AtlasRat_AllMetrics_z{}'.format(i_z))
+        nib.save(nii_metric, params.file_prefix + '{}'.format(level_array_list_flat[i_z]))
 
 
 # SCRIPT STARTS HERE
 # ======================================================================================================================
 
 # commandNameTemp = os.path.basename(__file__).strip(".py")
+
+ext = '.nii'  # .nii or .nii.gz
 
 os.makedirs(os.path.join(params.FOLDER, params.OUTPUT_FOLDER), exist_ok=True)
 os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
@@ -94,122 +148,52 @@ Thoracic_list = []
 Lumbar_list = []
 Sacral_list = []
 
-split_each_3d_volume_across_z_and_concatenate_metrics_along_t([os.path.join(params.FOLDER, i) for i in params.list_files])
-
+# Create flattened list of levels in the proper order
 level_array_list = [params.regions['cervical'],
                     params.regions['thoracic'],
                     params.regions['lumbar'],
                     params.regions['sacral']]
-levels = [Cervical_list, Thoracic_list, Lumbar_list, Sacral_list]
-i_z = 0
-for level_array_number, level_array in enumerate(level_array_list):
-    for folder_name in level_array:
-        # folder_path = os.path.join(Folder, folder_name)
-        # filename = os.path.join(folder_path, "Volume4D_sym_cleaned.nii.gz")
-        levels[level_array_number].append('AtlasRat_AllMetrics_z{}.nii'.format(i_z))
-        # TODO: have file names with suffix C2, C3, etc.
-        i_z += 1
+level_array_list_flat = [item for sublist in level_array_list for item in sublist]
+
+# Split each metric across z and concatenate along metric dimension
+split_each_3d_volume_across_z_and_concatenate_metrics_along_t(
+    [os.path.join(params.FOLDER, i+params.input_file_ext) for i in params.input_file_prefix],
+    level_array_list_flat)
+
+# levels = [Cervical_list, Thoracic_list, Lumbar_list, Sacral_list]
+# i_z = 0
+# for level_array_number, level_array in enumerate(level_array_list):
+#     for folder_name in level_array:
+#         # folder_path = os.path.join(Folder, folder_name)
+#         # filename = os.path.join(folder_path, "Volume4D_sym_cleaned.nii.gz")
+#         levels[level_array_number].append('AtlasRat_AllMetrics_z{}.nii'.format(i_z))
+#         # TODO: have file names with suffix C2, C3, etc.
+#         i_z += 1
 
 # For each level, the registration will follow this logic:
 # Let's assume 7 slices in a region. The central slice is 4.
 # - slice 2 will be registered to slice 3
 # - slice 1 will be registered to slice 3
 # - slice 0 will be registered to slice 3
-for level_number, level in enumerate(levels):
-    print("\033[1;35mNow processing region: " + params.regions.key[level_number] + "...\033[0;0m")
-    for i in range(len(level)):
+# for level_number, level in enumerate(levels):
+for region, levels in params.regions.items():
+
+    print("\033[1;35mNow processing region: " + region + "...\033[0;0m")
+    for i in range(len(levels)):
         metric = 0
-        central_level = int(math.ceil(len(level) / 2))
+        central_level = int(math.ceil(len(levels) / 2))
+        # For slices below the central slice
         if i in range(1, central_level):
-            moving_image = (central_level - 1) - i
-            fixed_image = (central_level - 1)
+            i_moving_image = (central_level - 1) - i
+            i_fixed_image = (central_level - 1)
 
-            preprocess_file(moving_image, fixed_image)
+            register_moving_to_fixed(levels[i_moving_image],
+                                     levels[i_fixed_image])
 
-            applied_warp = 'warp_{}_{}_to_{}'.format(level_names[level_number], moving_image, fixed_image)
-            # #  Register METRIC_REF(i-x) --> METRIC_REF(i)
-            # print_output(applied_warp + "1Warp.nii.gz")
-            # print_output(applied_warp + "0GenericAffine.mat")
-            cmd = ['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                   "--metric", "MeanSquares[", "temporary_fixed.nii,", "temporary_moving.nii, 1, 5]",
-                   "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas", "4x2vox",
-                   "--transform", "BSplineSyN[0.5, 2, 0]",
-                   "--metric", "MeanSquares[", "temporary_fixed.nii,", "temporary_moving.nii, 1, 4]",
-                   "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
-                   "--smoothing-sigmas", "4x2x1x0vox",
-                   "--output", "[", applied_warp, ",temporary_moving_reg.nii]", "--interpolation", "BSpline[3]"]
-            print(' '.join(cmd))
-            subprocess.call(cmd)
-
-            # Apply transformation to all metrics
-            for m in range(0, len(params.Metrics)):
-                metric = m
-                preprocess_file(moving_image, fixed_image, )
-                print_output("Applied_warp_" + str(params.Metrics[m]) + "_" + str(
-                    level_array_list[level_number][moving_image]) + "_on_" + str(
-                    level_array_list[level_number][fixed_image]) + ".nii.gz")
-                cmd = ['antsApplyTransforms',
-                       "--dimensionality",
-                       "2",
-                       "--input",
-                       "temporary_moving.nii",
-                       "--output",
-                       "Applied_warp_" + str(params.Metrics[m]) + "_" + str(
-                           level_array_list[level_number][moving_image]) + "_on_" + str(
-                           level_array_list[level_number][fixed_image]) + ".nii.gz",
-                       "--transform",
-                       applied_warp + "1Warp.nii.gz",
-                       applied_warp + "0GenericAffine.mat",
-                       "--reference-image",
-                       "temporary_fixed.nii",
-                       "--interpolation",
-                       "BSpline[3]",
-                       ]
-                print(' '.join(cmd))
-                subprocess.call(cmd)
-
+        # For slices above the central slice
         if i > (central_level - 1):
             moving_image = i
             fixed_image = (central_level - 1)
-            preprocess_file(moving_image, fixed_image, )
-            # applied_warp = "warp_" + str(moving_image) + "_" + str(fixed_image) + "_" + level_names[level_number]
-            print_output(applied_warp + "1Warp.nii.gz")
-            print_output(applied_warp + "0GenericAffine.mat")
-            # #  Register METRIC_REF(i +1) --> METRIC_REF(i)
-            cmd = ['antsRegistration', "--dimensionality", "2", "--transform", "Affine[0.5]",
-                   "--metric", "MeanSquares[", "temporary_fixed.nii,",
-                   "temporary_moving.nii, 1, 5]",
-                   "--convergence", "100x100", "--shrink-factors", "8x4", "--smoothing-sigmas",
-                   "4x2vox",
-                   "--transform", "BSplineSyN[0.5,2]",
-                   "--metric", "MeanSquares[", "temporary_fixed.nii,",
-                   "temporary_moving.nii, 1, 4]",
-                   "--convergence", "100x100x100x100", "--shrink-factors", "8x4x2x1",
-                   "--smoothing-sigmas", "4x2x1x0vox",
-                   "--output", "[", applied_warp, ",temporary_moving_reg.nii]",
-                   "--interpolation", "BSpline[3]"]
-            print(' '.join(cmd))
-            subprocess.call(cmd)
 
-            for m in range(0, len(params.Metrics)):
-                metric = m
-                preprocess_file(moving_image,
-                                fixed_image,
-                                )
-                cmd = ['antsApplyTransforms', "--dimensionality", "2",
-                       "--input", "temporary_moving.nii",
-                       "--output", "Applied_warp_" + str(params.Metrics[m]) + "_" + str(
-                        level_array_list[level_number][moving_image]) + "_on_" + str(
-                        level_array_list[level_number][fixed_image]) + ".nii.gz",
-                       "--transform",
-                       applied_warp + "1Warp.nii.gz",
-                       applied_warp + "0GenericAffine.mat",
-                       "--reference-image", "temporary_fixed.nii"]
-                print(' '.join(cmd))
-                subprocess.call(cmd)
-
-# # Concatenate the volumes per section
-# for i in len(level):
-#
-#     Volume_3D = np.zeros((151, 151, 6))
-#     nib.save(Volume_4D, "/Users/hanam/Documents/Tracts_testing_2/all_levels/ref_4D")
+            register_moving_to_fixed(levels[i_moving_image],
+                                     levels[i_fixed_image])
