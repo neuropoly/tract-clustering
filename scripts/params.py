@@ -9,22 +9,14 @@
 FOLDER = '/Users/julien/Desktop/AtlasRat'  # Path to folder that contains all slices and all metrics
 OUTPUT_FOLDER = 'results'
 
-list_files = [
-    'AtlasRat_AD.nii.gz',
-    'AtlasRat_AED.nii.gz',
-    'AtlasRat_GR.nii.gz',
-    'AtlasRat_MT.nii.gz',
-    'AtlasRat_MVF.nii.gz',
+input_file_prefix = [
+    'AtlasRat_AD',
+    'AtlasRat_AED',
+    'AtlasRat_GR',
+    'AtlasRat_MT',
+    'AtlasRat_MVF',
 ]
-
-Metrics = [
-    "Axon_Density",
-    "axon_equiv_diameter",
-    # "AVF_corrected",
-    "GR_corrected",
-    "Myelin_thickness",
-    "MVF_corrected"
-]
+input_file_ext = '.nii.gz'
 
 # TODO: clean below
 regions = {
@@ -60,4 +52,4 @@ regions_ordered = ['cervical', 'thoracic', 'lumbar', 'sacral']
 # PARAMETERS THAT ARE USED INTERNALLY BY THE CODE
 # ======================================================================================================================
 
-file_prefix = 'AtlasRat_AllMetrics'
+file_prefix = 'AtlasRat_AllMetrics_'
