@@ -2,7 +2,7 @@
 
 # Apply clustering on processed rat atlas metrics.
 
-
+import os
 import seaborn as sns
 import pickle
 import numpy as np
@@ -40,18 +40,28 @@ sns.set_style("whitegrid", {'axes.grid' : False})
 
 np.set_printoptions(threshold=np.inf)
 
-def generate_clustering_per_region(region, levels):
+
+def generate_clustering_per_region(region):
     """
     Generate clustering from a series of 2D slices pertaining to a region (e.g. cervical)
     :param region:
     :param levels: list of levels
     :return:
     """
-    # open files from all levels
+    # open file
+    nii = nib.load(params.file_prefix + region + ext)
+    data = nii.get_data()
+
+# SCRIPT STARTS HERE
+# ======================================================================================================================
+
+ext = '.nii'
+
+os.chdir(params.folder_concat_region)
 
 # Load files per region
 for region, levels in params.regions.items():
-    generate_clustering_per_region(region, levels)
+    generate_clustering_per_region(region)
 
 
 
@@ -59,8 +69,8 @@ for region, levels in params.regions.items():
 
 
 
-nibfile = nib.load("/Users/julien/Desktop/Tracts_testing_2/S4/Volume4D_sym_cleaned.nii.gz")
-data = nibfile.get_data()
+# nibfile = nib.load("/Users/julien/Desktop/Tracts_testing_2/S4/Volume4D_sym_cleaned.nii.gz")
+# data = nibfile.get_data()
 mask = nib.load("/Users/hanam/Documents/Tracts_testing_2/all_levels/S4/BW_mask.nii.gz")
 maskdata = mask.get_data()
 
