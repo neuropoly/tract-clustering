@@ -3,35 +3,47 @@
 # Apply clustering on processed rat atlas metrics.
 
 import os
+import sys
 import seaborn as sns
-import pickle
+# import pickle
 import numpy as np
-import scipy as sp
+# import scipy as sp
+import logging
 import nibabel as nib
-import pandas as pd
-import numpy.ma as ma
+# import pandas as pd
+# import numpy.ma as ma
+# from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+# from matplotlib.figure import Figure
+
 from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import Axes3D
-from PIL import Image
-from scipy import misc
-from scipy.cluster.hierarchy import dendrogram
-from scipy import ndimage
-from scipy import signal
-from sklearn.datasets import load_iris
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
+# from mpl_toolkits.mplot3d import Axes3D
+# from PIL import Image
+# from scipy import misc
+# from scipy.cluster.hierarchy import dendrogram
+# from scipy import ndimage
+# from scipy import signal
+# from sklearn.datasets import load_iris
 from scipy import stats
-from collections import Counter
-from pandas import DataFrame as df
-from sklearn import datasets
-from sklearn import metrics
+# from collections import Counter
+# from pandas import DataFrame as df
+# from sklearn import datasets
+# from sklearn import metrics
 from sklearn.cluster import *
 from sklearn.preprocessing import StandardScaler
-from sklearn.manifold import TSNE
+# from sklearn.manifold import TSNE
 from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances
-from sklearn.metrics import davies_bouldin_score
+# from sklearn.metrics import davies_bouldin_score
 
 import params
+
+
+# Initialize logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # default: logging.DEBUG, logging.INFO
+hdlr = logging.StreamHandler(sys.stdout)
+logging.root.addHandler(hdlr)
 
 
 # seaborn fig params
@@ -48,66 +60,61 @@ def generate_clustering_per_region(region):
     :param levels: list of levels
     :return:
     """
-    # open file
-    nii = nib.load(params.file_prefix + region + ext)
+    # Load data
+    logger.info("Load data...")
+    nii = nib.load(params.file_prefix_all + region + ext)
     data = nii.get_data()
+    nii_mask = nib.load(params.file_mask_prefix + region + ext)
+    data_mask = nii_mask.get_data()
+
+    # Crop around spinal cord, and only keep half of it (it is symmetrical)
+    # TODO; use mask
+    data_crop = data[49:103, 75:114, :, :]
+
+    # Standardize data
+    logger.info("Standardize data...")
+    original_shape = data_crop.shape[0:3]
+    data2d = data_crop.reshape(-1, data_crop.shape[3])
+    scaler = StandardScaler()
+    data2d_norm = scaler.fit_transform(data2d)
+    # Build connectivity matrix
+    logger.info("Build connectivity matrix...")
+    connectivity = grid_to_graph(n_x=data_crop.shape[0],
+                                 n_y=data_crop.shape[1],
+                                 n_z=data_crop.shape[2])
+    # Perform clustering
+    logger.info("Run clustering...")
+    num_clusters = 7
+    clustering = AgglomerativeClustering(linkage="ward", n_clusters=num_clusters, connectivity=connectivity)
+    clustering.fit(data2d_norm)
+    logger.info("Reshape labels...")
+    labels = clustering.labels_
+    labels = labels.reshape(*original_shape)
+
+    # Display clustering results
+    logger.info("Generate figures...")
+    fig = plt.figure(figsize=(20, 20))
+    fig.subplots_adjust(hspace=0.1, wspace=0.1)
+    for i in range(8):
+        ax = fig.add_subplot(3, 3, i+1)
+        ax.imshow(labels[:, :, i], cmap='Spectral')
+        plt.title("iz = {}".format(i), pad=18)
+        plt.tight_layout()
+    fig.savefig('clustering_results.png')
+    logger.info("Done!")
+
 
 # SCRIPT STARTS HERE
 # ======================================================================================================================
 
 ext = '.nii'
 
-os.chdir(params.folder_concat_region)
+os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region))
 
 # Load files per region
 for region, levels in params.regions.items():
     generate_clustering_per_region(region)
 
-
-
-
-
-
-
-# nibfile = nib.load("/Users/julien/Desktop/Tracts_testing_2/S4/Volume4D_sym_cleaned.nii.gz")
-# data = nibfile.get_data()
-mask = nib.load("/Users/hanam/Documents/Tracts_testing_2/all_levels/S4/BW_mask.nii.gz")
-maskdata = mask.get_data()
-
-# In[2944]:
-
-
-img = plt.imshow(maskdata)
-
-# In[2945]:
-
-
-maskdata = np.rot90(maskdata, 1, (1, 0))
-
-# In[2946]:
-
-
-plt.imshow(maskdata, cmap="gray")
-
-# In[2947]:
-
-
-maskdata = maskdata[:, :maskdata.shape[1] // 2]
-
-# In[2948]:
-
-
-plt.imshow(maskdata, cmap="gray")
-
-# In[2949]:
-
-
-maskdata.shape
-
-# In[2950]:
-
-
-data.shape
 
 
 # In[2951]:
@@ -120,59 +127,59 @@ def crop_center(img, cropx, cropy):
     return img[starty:starty + cropy, startx:startx + cropx]
 
 
-# In[2952]:
-
-
-feature_names = [
-    "number_axons",
-    "axon_equiv_diameter",
-    "avf",
-    "g_ratio",
-    "myelin_thickness",
-    "mvf",
-    ]
+# # In[2952]:
+#
+#
+# feature_names = [
+#     "number_axons",
+#     "axon_equiv_diameter",
+#     "avf",
+#     "g_ratio",
+#     "myelin_thickness",
+#     "mvf",
+#     ]
 
 # In[2953]:
-
-
-data = data.transpose((1, 0, 2, 3))
-
-# Ignore solidity, eccent., orient., etc.
-# data = data[..., 0:6]
-data = data.squeeze(axis=2)
-
-# In[2954]:
-
-
-data.shape
-
-# In[2955]:
-
-
-data = data[:, :data.shape[1] // 2, :]
-
-# In[2956]:
-
-
-data.shape
-
-# In[2957]:
-
-
-original_shape = data.shape[0:2]
-
-# printoriginal_shape
-
-# In[2958]:
-
-
-h1 = 35
-h2 = 115
-w1 = 0
-w2 = 180
-
-
-# In[2959]:
+#
+#
+# data = data.transpose((1, 0, 2, 3))
+#
+# # Ignore solidity, eccent., orient., etc.
+# # data = data[..., 0:6]
+# data = data.squeeze(axis=2)
+#
+# # In[2954]:
+#
+#
+# data.shape
+#
+# # In[2955]:
+#
+#
+# data = data[:, :data.shape[1] // 2, :]
+#
+# # In[2956]:
+#
+#
+# data.shape
+#
+# # In[2957]:
+#
+#
+# original_shape = data.shape[0:2]
+#
+# # printoriginal_shape
+#
+# # In[2958]:
+#
+#
+# h1 = 35
+# h2 = 115
+# w1 = 0
+# w2 = 180
+#
+#
+# # In[2959]:
 
 
 def colorbar(mappable):
@@ -213,31 +220,31 @@ for i in range(1, data.shape[2] + 1):
 plt.tight_layout(h_pad=1)
 
 # In[2961]:
-
-
-connectivity = grid_to_graph(n_x=data.shape[0],
-                             n_y=data.shape[1])
+#
+#
+# connectivity = grid_to_graph(n_x=data.shape[0],
+#                              n_y=data.shape[1])
 
 # In[2962]:
 
-
-connectivity
+#
+# connectivity
 
 # In[2963]:
 
-
-data = data.reshape(-1, data.shape[2])
-
-# In[2964]:
-
-
-scaler = StandardScaler()
-data = scaler.fit_transform(data)
-
-# In[2965]:
-
-
-data.shape
+#
+# data = data.reshape(-1, data.shape[2])
+#
+# # In[2964]:
+#
+#
+# scaler = StandardScaler()
+# data = scaler.fit_transform(data)
+#
+# # In[2965]:
+#
+#
+# data.shape
 
 # # t-SNE
 
@@ -250,11 +257,11 @@ data.shape
 # In[2967]:
 
 
-num_clusters = 7
-clustering = AgglomerativeClustering(linkage="ward", n_clusters=num_clusters,
-                                     connectivity=connectivity)
-clustering.fit(data)
-labels = clustering.labels_
+# num_clusters = 7
+# clustering = AgglomerativeClustering(linkage="ward", n_clusters=num_clusters,
+#                                      connectivity=connectivity)
+# clustering.fit(data)
+# labels = clustering.labels_
 
 # silhouette= silhouette_score(connectivity, labels)
 
