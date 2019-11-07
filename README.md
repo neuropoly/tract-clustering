@@ -24,16 +24,15 @@ cd tract-clustering
 pip install -e .
 ~~~
 
-- Open the script `registration_script_clustering_edit.py`
-- Update the variable `Folder` to point to the unzipped rat atlas folder.
-- Run:
+- Edit the script `scripts/params.py` and update variables according to your files location
+- Run registration:
 ~~~
-python registration_script_clustering_edit.py
+python register_slicewise.py
 ~~~
 
-- Run Jupyter notebook to perform clustering:
+- Run clustering:
 ~~~
-jupyter notebook notebooks/tract_clustering_enforced_symmetry-clean.ipynb 
+python clustering.py
 ~~~ 
 
 ## Internal discussions
