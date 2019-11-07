@@ -52,6 +52,7 @@ def generate_clustering_per_region(region):
     ymin, ymax = (75, 114)
 
     data_crop = data[xmin:xmax, ymin:ymax, :]
+    del data
 
     if use_mask:
         # Load data
@@ -71,6 +72,7 @@ def generate_clustering_per_region(region):
     data2d = data_crop.reshape(-1, data_crop.shape[3])
     scaler = StandardScaler()
     data2d_norm = scaler.fit_transform(data2d)
+    del data2d
 
     # Build connectivity matrix
     logger.info("Build connectivity matrix...")
@@ -79,9 +81,11 @@ def generate_clustering_per_region(region):
                                  n_z=data_crop.shape[2],
                                  mask=mask_crop)
 
+    del data_crop
+
     # Perform clustering
     logger.info("Run clustering...")
-    num_clusters = [5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [5]  # [5, 6, 7, 8, 9, 10, 11]
 
     for n_cluster in num_clusters:
         logger.info("Number of clusters: {}".format(n_cluster))
@@ -90,6 +94,7 @@ def generate_clustering_per_region(region):
         logger.info("Reshape labels...")
         labels = np.zeros_like(mask_crop, dtype=np.int)
         labels[ind_mask] = clustering.labels_
+        del clustering
 
         # Display clustering results
         logger.info("Generate figures...")
@@ -101,9 +106,41 @@ def generate_clustering_per_region(region):
             plt.title("iz = {}".format(i), pad=18)
             plt.tight_layout()
         fig.savefig('clustering_results_ncluster{}.png'.format(n_cluster))
+        fig.clear()
 
-    # Create 4D array: last dimension corresponds to the cluster number. Cluster value is converted to 1.
-    # Average across Z. Each cluster is coded between 0 and 1.
+        # Create 4D array: last dimension corresponds to the cluster number. Cluster value is converted to 1.
+        a = list(labels.shape)
+        a.append(n_cluster)
+        labels4d = np.zeros(a)
+        for i_label in range(n_cluster):
+            ind_label = np.argwhere(labels == i_label)
+            for i in ind_label:
+                labels4d[i[0], i[1], i[2], i_label] = 1
+
+        # Average across Z. Each cluster is coded between 0 and 1.
+        labels3d = np.mean(labels4d, axis=2)
+
+        # Display result of averaging
+        # TODO: find a way to have opacity increase with value (0: no opacity)
+        logger.info("Generate figures...")
+        fig = plt.figure(figsize=(7, 7))
+        fig.subplots_adjust(hspace=0.1, wspace=0.1)
+        ax = fig.add_subplot(1, 1, 1)
+        # ax.imshow(labels3d[:, :, 0], cmap='Blues', alpha=0.5)
+        ax.imshow(labels3d[:, :, 1], cmap='Reds', alpha=0.5)
+        ax.imshow(labels3d[:, :, 2], cmap='Greens', alpha=0.5)
+        ax.imshow(labels3d[:, :, 3], cmap='Purples', alpha=0.5)
+        ax.imshow(labels3d[:, :, 0], cmap='Blues', alpha=0.5)
+        plt.title("Cluster map averaged across z", pad=18)
+        plt.tight_layout()
+        fig.savefig('clustering_results_avgz_ncluster{}.png'.format(n_cluster))
+
+
+    del data2d_norm
+
+
+
+
 
     logger.info("Done!")
 
