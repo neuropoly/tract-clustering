@@ -11,6 +11,7 @@ OUTPUT_FOLDER = 'results'
 
 file_prefix = 'AtlasRat_'
 
+# list of 3d input files
 input_file_prefix = [
     'AtlasRat_AD',
     'AtlasRat_AED',
@@ -20,6 +21,9 @@ input_file_prefix = [
     'AtlasRat_mask_WM',
 ]
 
+# Paxinos atlas. Do not add the extension. If defined as empty list, the code will not process this file.
+file_paxinos = 'AtlasRat_Paxinos'
+
 metrics = [
     'AD',
     'AED',
@@ -27,7 +31,6 @@ metrics = [
     'MT',
     'MVF'
     ]
-# input_file_mask = 'AtlasRat_mask_WM.nii.gz'
 
 # Metric used as reference for estimating the warping field, which will then be applied to all other metrics
 input_file_prefix_reference = 'AtlasRat_AD'
