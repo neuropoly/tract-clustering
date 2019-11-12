@@ -149,6 +149,30 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, le
     return nii_metric.shape[0:2]
 
 
+def split_paxinos_into_3d_files(file_paxinos):
+    """
+    Split Paxinos 4d file into multiple 3d files, with suffix _01, _02, etc.
+    :param file_paxinos:
+    :return: None
+    """
+    if not file_paxinos:
+        print("No Paxinos file provided.")
+        return
+        # return input_file_prefix
+    # open file
+    nii4d = nib.Nifti1Image.load(file_paxinos)
+    data4d = nii4d.get_data()
+    # Loop across 4th dimension and save 3d file
+    for i_label in range(nii4d.shape[3]):
+        nii3d = nib.Nifti1Image(data4d[:, :, :, i_label], nii4d.affine, nii4d.header)
+        # Note: we save the files where the other atlas + mask files are located for more convenience with the code
+        # worflow (the code will search for ALL input files there).
+        file_paxinos_3d = params.file_paxinos + '_{}'.format(str(i_label).zfill(2))
+        nib.save(nii3d, os.path.join(params.FOLDER, file_paxinos_3d+'.nii.gz'))
+        params.input_file_prefix.append(file_paxinos_3d)
+    return
+
+
 # SCRIPT STARTS HERE
 # ======================================================================================================================
 
@@ -170,6 +194,8 @@ level_array_list = [params.regions['cervical'],
                     params.regions['lumbar'],
                     params.regions['sacral']]
 level_array_list_flat = [item for sublist in level_array_list for item in sublist]
+
+split_paxinos_into_3d_files(os.path.join(params.FOLDER, params.file_paxinos+'.nii.gz'))
 
 # Split each metric across z and concatenate along metric dimension
 nx, ny = split_each_3d_volume_across_z_and_concatenate_metrics_along_t(
@@ -215,6 +241,7 @@ for region, levels in params.regions.items():
 
 # Concatenate data for each region, according to: (x, y, z, metric)
 os.makedirs(params.folder_concat_region, exist_ok=True)
+list_paxinos_3d_files = [s for s in params.input_file_prefix if 'Paxinos' in s]
 for region, levels in params.regions.items():
     print("\033[1;35mConcatenate region: " + region + "...\033[0;0m")
     # Save metrics
@@ -232,3 +259,15 @@ for region, levels in params.regions.items():
         data3d[:, :, levels.index(level)] = nii2d.get_data()
     nii3d = nib.Nifti1Image(data3d, nii2d.affine, nii2d.header)
     nib.save(nii3d, os.path.join(params.folder_concat_region, params.file_mask_prefix + region + ext))
+    # Save Paxinos atlas into 4d file
+    data4d = np.zeros([nx, ny, len(levels), len(list_paxinos_3d_files)])
+    for tract in list_paxinos_3d_files:
+        for level in levels:
+            nii2d = nib.Nifti1Image.load(tract + '_' + level + '_to_' + params.reference_level[region] + ext)
+            data4d[:, :, levels.index(level), list_paxinos_3d_files.index(tract)] = nii2d.get_data()
+    nii4d = nib.Nifti1Image(data4d, nii2d.affine, nii2d.header)
+    nib.save(nii4d, os.path.join(params.folder_concat_region, params.file_paxinos + '_' + region + ext))
+
+# Remove temporary Paxinos files
+for file_paxinos in list_paxinos_3d_files:
+    os.remove(os.path.join(params.FOLDER, file_paxinos + '.nii.gz'))
