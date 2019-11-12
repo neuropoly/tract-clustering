@@ -83,6 +83,13 @@ def generate_clustering_per_region(region):
 
     del data_crop
 
+    # Process Paxinos atlas for display
+    nii_paxinos = nib.load(params.file_paxinos + '_' + region + ext)
+    paxinos3d = np.mean(nii_paxinos.get_data(), axis=2)
+    # normalize between 0 and 1
+    paxinos3d = (paxinos3d-np.min(paxinos3d)) / (np.max(paxinos3d)-np.min(paxinos3d))
+    # TODO: crop Paxinos
+
     # Perform clustering
     logger.info("Run clustering...")
     num_clusters = [5]  # [5, 6, 7, 8, 9, 10, 11]
@@ -124,7 +131,9 @@ def generate_clustering_per_region(region):
         logger.info("Generate figures...")
         fig = plt.figure(figsize=(7, 7))
         fig.subplots_adjust(hspace=0.1, wspace=0.1)
-        ax = fig.add_subplot(1, 1, 1)
+
+        # Display clustering
+        ax = fig.add_subplot(1, 2, 1)
         for i_label in range(n_cluster):
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
@@ -134,6 +143,20 @@ def generate_clustering_per_region(region):
             ax.imshow(labels_rgb)
         plt.title("Cluster map averaged across z", pad=18)
         plt.tight_layout()
+
+        # Display Paxinos
+        # TODO: generalize BASE_COLORS for more than 8 labels
+        ax = fig.add_subplot(1, 2, 2)
+        for i_label in range(paxinos3d.shape[2]):
+            labels_rgb = np.zeros([paxinos3d.shape[0], paxinos3d.shape[1], 4])
+            for ix in range(paxinos3d.shape[0]):
+                for iy in range(paxinos3d.shape[1]):
+                    ind_color = list(colors.BASE_COLORS.keys())[i_label]
+                    labels_rgb[ix, iy] = colors.to_rgba(colors.BASE_COLORS[ind_color], paxinos3d[ix, iy, i_label])
+            ax.imshow(labels_rgb)
+        plt.title("Paxinos atlas averaged across z", pad=18)
+        plt.tight_layout()
+
         fig.savefig('clustering_results_avgz_ncluster{}.png'.format(n_cluster))
 
     del data2d_norm
