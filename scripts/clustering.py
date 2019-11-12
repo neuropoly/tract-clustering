@@ -9,7 +9,7 @@ import numpy as np
 from scipy import stats
 import logging
 from matplotlib import pyplot as plt
-
+from matplotlib import colors
 import nibabel as nib
 from sklearn.cluster import *
 from sklearn.preprocessing import StandardScaler
@@ -121,26 +121,22 @@ def generate_clustering_per_region(region):
         labels3d = np.mean(labels4d, axis=2)
 
         # Display result of averaging
-        # TODO: find a way to have opacity increase with value (0: no opacity)
         logger.info("Generate figures...")
         fig = plt.figure(figsize=(7, 7))
         fig.subplots_adjust(hspace=0.1, wspace=0.1)
         ax = fig.add_subplot(1, 1, 1)
-        # ax.imshow(labels3d[:, :, 0], cmap='Blues', alpha=0.5)
-        ax.imshow(labels3d[:, :, 1], cmap='Reds', alpha=0.5)
-        ax.imshow(labels3d[:, :, 2], cmap='Greens', alpha=0.5)
-        ax.imshow(labels3d[:, :, 3], cmap='Purples', alpha=0.5)
-        ax.imshow(labels3d[:, :, 0], cmap='Blues', alpha=0.5)
+        for i_label in range(n_cluster):
+            labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
+            for ix in range(labels3d.shape[0]):
+                for iy in range(labels3d.shape[1]):
+                    ind_color = list(colors.BASE_COLORS.keys())[i_label]
+                    labels_rgb[ix, iy] = colors.to_rgba(colors.BASE_COLORS[ind_color], labels3d[ix, iy, i_label])
+            ax.imshow(labels_rgb)
         plt.title("Cluster map averaged across z", pad=18)
         plt.tight_layout()
         fig.savefig('clustering_results_avgz_ncluster{}.png'.format(n_cluster))
 
-
     del data2d_norm
-
-
-
-
 
     logger.info("Done!")
 
