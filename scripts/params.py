@@ -59,3 +59,25 @@ reference_level = {
 file_prefix_all = 'AtlasRat_AllMetrics_'
 file_mask_prefix = 'AtlasRat_mask_WM_'
 folder_concat_region = 'concat_within_region'
+
+# colors used to display the clustered tracts
+colors = {
+    'k': (0, 0, 0),  # 0
+    'g': (0, 0.5, 0),  # 1
+    'r': (1, 0, 0),  # 2
+    'c': (0, 0.75, 0.75),  # 3
+    'y': (0.75, 0.75, 0),  # 4
+    'm': (0.75, 0, 0.75),  # 5
+    'b': (0, 0, 1),  # 6
+    'w': (1, 1, 1),  # 7
+    'indigo': (0.29411764705882354, 0.0, 0.5098039215686274),  # 8
+    'orange': (1.0, 0.6470588235294118, 0.0),  # 9
+    'brown': (0.6470588235294118, 0.16470588235294117, 0.16470588235294117),  # 10
+    'lightpink': (1.0, 0.7137254901960784, 0.7568627450980392),  # 11
+    }
+
+# Mapping of color index between cluster map and paxinos, depending on cluster number
+clust2pax = {
+    8: [2, 7, 10, 6, 3, 11, 5, 7],
+    10: [7, 6, 2, 8, 3, 9, 10, 7, 1, 11],
+    }

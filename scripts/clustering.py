@@ -88,13 +88,14 @@ def generate_clustering_per_region(region):
     paxinos3d = np.mean(nii_paxinos.get_data(), axis=2)
     # Crop data
     paxinos3d = paxinos3d[xmin:xmax, ymin-(ymax-ymin):ymin, :]
-    # normalize between 0 and 1
-    paxinos3d = (paxinos3d-np.min(paxinos3d)) / (np.max(paxinos3d)-np.min(paxinos3d))
+    # clip between 0 and 1.
+    # note: we don't want to normalize, otherwise the background (which should be 0) will have a non-zero value.
+    paxinos3d = np.clip(paxinos3d, 0, 1)
     # TODO: crop Paxinos
 
     # Perform clustering
     logger.info("Run clustering...")
-    num_clusters = [5]  # [5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
 
     for n_cluster in num_clusters:
         logger.info("Number of clusters: {}".format(n_cluster))
@@ -132,32 +133,35 @@ def generate_clustering_per_region(region):
         # Display result of averaging
         logger.info("Generate figures...")
         fig = plt.figure(figsize=(7, 7))
+
         # Display Paxinos
         # TODO: generalize BASE_COLORS for more than 8 labels
         ax = fig.add_subplot(1, 2, 1)
+        ax.set_facecolor((1, 1, 1))
         for i_label in range(paxinos3d.shape[2]):
             labels_rgb = np.zeros([paxinos3d.shape[0], paxinos3d.shape[1], 4])
             for ix in range(paxinos3d.shape[0]):
                 for iy in range(paxinos3d.shape[1]):
-                    ind_color = list(colors.BASE_COLORS.keys())[i_label]
-                    labels_rgb[ix, iy] = colors.to_rgba(colors.BASE_COLORS[ind_color], paxinos3d[ix, iy, i_label])
+                    ind_color = list(params.colors.keys())[i_label]
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
             ax.imshow(labels_rgb)
         plt.axis('off')
         plt.title("Paxinos atlas", pad=18)
         plt.tight_layout()
+
         # Display clustering
         ax = fig.add_subplot(1, 2, 2)
         for i_label in range(n_cluster):
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
-                    ind_color = list(colors.BASE_COLORS.keys())[i_label]
-                    labels_rgb[ix, iy] = colors.to_rgba(colors.BASE_COLORS[ind_color], labels3d[ix, iy, i_label])
+                    ind_color = list(params.colors.keys())[params.clust2pax[n_cluster][i_label]]
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], labels3d[ix, iy, i_label])
             ax.imshow(labels_rgb)
         plt.axis('off')
         plt.title("Cluster map", pad=18)
         plt.tight_layout()
-        fig.subplots_adjust(hspace=0, wspace=0)
+        fig.subplots_adjust(hspace=0, wspace=0.1)
         fig.savefig('clustering_results_avgz_ncluster{}.png'.format(n_cluster))
 
     del data2d_norm
@@ -175,9 +179,6 @@ os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_
 # Load files per region
 for region, levels in params.regions.items():
     generate_clustering_per_region(region)
-    sys.exit()
-
-
 
 
 
