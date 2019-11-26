@@ -47,8 +47,16 @@ def generate_clustering_per_region(region):
     # Crop around spinal cord, and only keep half of it (it is symmetrical)
     # TODO: parametrize this, and find center automatically
     # TODO: find cropping values per region
-    xmin, xmax = (49, 103)
-    ymin, ymax = (75, 114)
+
+    if region == 'cervical' or region == 'lumbar':
+        xmin, xmax = (45, 110)
+        ymin, ymax = (75, 114)
+    elif region == 'thoracic':
+        xmin, xmax = (53, 100)
+        ymin, ymax = (75, 105)
+    else:
+        xmin, xmax = (55, 94)
+        ymin, ymax = (75, 95)
 
     data_crop = data[xmin:xmax, ymin:ymax, :]
     del data
@@ -109,12 +117,12 @@ def generate_clustering_per_region(region):
         logger.info("Generate figures...")
         fig = plt.figure(figsize=(20, 20))
         fig.subplots_adjust(hspace=0.1, wspace=0.1)
-        for i in range(8):
-            ax = fig.add_subplot(3, 3, i+1)
+        for i in range(len(levels)):
+            ax = fig.add_subplot(4, 4, i+1)
             ax.imshow(labels[:, :, i], cmap='Spectral')
             plt.title("iz = {}".format(i), pad=18)
             plt.tight_layout()
-        fig.savefig('clustering_results_ncluster{}.png'.format(n_cluster))
+        fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, region))
         fig.clear()
 
         # Create 4D array: last dimension corresponds to the cluster number. Cluster value is converted to 1.
