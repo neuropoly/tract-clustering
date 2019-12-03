@@ -7,12 +7,14 @@ import sys
 import seaborn as sns
 import numpy as np
 import logging
+from matplotlib.pylab import *
 from matplotlib import pyplot as plt
 from matplotlib import colors
 import nibabel as nib
 from sklearn.cluster import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.image import grid_to_graph
+from sklearn.metrics import mutual_info_score
 
 import params
 
@@ -30,6 +32,41 @@ sns.set_style("whitegrid", {'axes.grid' : False})
 np.set_printoptions(threshold=np.inf)
 
 
+def get_best_matching_color_with_paxinos(im=None, imref=None):
+    """
+    Find the color index for im that corresponds to the tract of imref with the maximum overlap
+    :param im: 3D image: X, Y, TRACT
+    :param imref: 3D image with tract to match: X, Y, TRACT
+    :return: list: RGB color
+    """
+    sorted_score = []
+    list_color = []
+    # Match colors with reference image
+    for i_label in range(imref.shape[2]):
+        # compute MI between a given tract from the reference image and all tracts from the input image
+        score = [np.sum(np.multiply(im[..., i], imref[..., i_label])) for i in range(im.shape[2])]
+        #
+        # mi_score = [mutual_info_score(im[..., i].reshape(np.multiply(im.shape[0], im.shape[1])),
+        #                               imref[..., i_label].reshape(np.multiply(im.shape[0], im.shape[1])))
+        #             for i in range(im.shape[2])
+        #             ]
+        logger.debug("Ref label #{}: Mutual information: {}".format(i_label, score))
+        sorted_score.append(np.argmax(score))
+        # list_color.append(list(params.colors.keys())[np.argmax(score)])
+
+    # Fill with remainind colors
+    for i in range(8, 8+im.shape[2]-imref.shape[2]):
+        list_color.append(list(params.colors.keys())[i])
+
+    logger.debug("Selected colors: {}".format(list_color))
+
+    # debugging
+    for i in range(8):
+        matshow(imref[..., i], fignum=i+1, cmap=cm.gray), plt.colorbar(), show()
+
+    return list_color
+
+
 def generate_clustering_per_region(region):
     """
     Generate clustering from a series of 2D slices pertaining to a region (e.g. cervical)
@@ -37,7 +74,7 @@ def generate_clustering_per_region(region):
     :param levels: list of levels
     :return:
     """
-    use_mask = False
+    use_mask = True
 
     # Load data
     logger.info("Load data...")
@@ -71,7 +108,7 @@ def generate_clustering_per_region(region):
         mask_crop = np.ones(data_crop.shape[0:3]) > 0.5
     # Reshape
     ind_mask = np.where(mask_crop)
-    mask2d = np.squeeze(mask_crop.reshape(-1, 1))
+    mask1d = np.squeeze(mask_crop.reshape(-1, 1))
 
     # Standardize data
     logger.info("Standardize data...")
@@ -94,7 +131,7 @@ def generate_clustering_per_region(region):
     nii_paxinos = nib.load(params.file_paxinos + '_' + region + ext)
     paxinos3d = np.mean(nii_paxinos.get_data(), axis=2)
     # Crop data
-    paxinos3d = paxinos3d[xmin:xmax, ymin-(ymax-ymin):ymin, :]
+    paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
     # clip between 0 and 1.
     # note: we don't want to normalize, otherwise the background (which should be 0) will have a non-zero value.
     paxinos3d = np.clip(paxinos3d, 0, 1)
@@ -107,10 +144,10 @@ def generate_clustering_per_region(region):
     for n_cluster in num_clusters:
         logger.info("Number of clusters: {}".format(n_cluster))
         clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
-        clustering.fit(data2d_norm[mask2d, :])
+        clustering.fit(data2d_norm[mask1d, :])
         logger.info("Reshape labels...")
         labels = np.zeros_like(mask_crop, dtype=np.int)
-        labels[ind_mask] = clustering.labels_
+        labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
 
         # Display clustering results
@@ -130,7 +167,7 @@ def generate_clustering_per_region(region):
         a.append(n_cluster)
         labels4d = np.zeros(a)
         for i_label in range(n_cluster):
-            ind_label = np.argwhere(labels == i_label)
+            ind_label = np.argwhere(labels == i_label + 1)
             for i in ind_label:
                 labels4d[i[0], i[1], i[2], i_label] = 1
 
@@ -157,14 +194,16 @@ def generate_clustering_per_region(region):
         plt.title("Paxinos atlas", pad=18)
         plt.tight_layout()
 
+        # Find label color corresponding best to the Paxinos atlas
+        list_color = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
+
         # Display clustering
         ax = fig.add_subplot(1, 2, 2)
         for i_label in range(n_cluster):
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
-                    ind_color = list(params.colors.keys())[params.clust2pax[n_cluster][i_label]]
-                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], labels3d[ix, iy, i_label])
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label])
             ax.imshow(labels_rgb)
         plt.axis('off')
         plt.title("Cluster map", pad=18)
