@@ -79,12 +79,13 @@ def generate_clustering_per_region(region):
     # Load data
     logger.info("Load data...")
     nii = nib.load(params.file_prefix_all + region + ext)
-    data = nii.get_data()
+    data = nii.get_fdata()
 
-    # Crop around spinal cord, and only keep half of it (it is symmetrical)
+    # Crop around spinal cord, and only keep half of it.
+    # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
+    # we can discard one half, without loosing information.
     # TODO: parametrize this, and find center automatically
     # TODO: find cropping values per region
-
     if region == 'cervical' or region == 'lumbar':
         xmin, xmax = (45, 110)
         ymin, ymax = (75, 114)
@@ -94,10 +95,10 @@ def generate_clustering_per_region(region):
     else:
         xmin, xmax = (55, 94)
         ymin, ymax = (75, 95)
-
     data_crop = data[xmin:xmax, ymin:ymax, :]
     del data
 
+    # If we have a mask of the white matter, we load it and crop it according to the data_crop shape.
     if use_mask:
         # Load data
         nii_mask = nib.load(params.file_mask_prefix + region + ext)
