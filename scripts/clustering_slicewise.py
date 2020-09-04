@@ -33,16 +33,14 @@ np.set_printoptions(threshold=np.inf)
 ext = '.nii'
 
 os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
-use_mask = True
 
-# # Load mask
-# logger.info("Load mask...")
-# nii_mask = nib.load(os.path.join(os.path.join(params.FOLDER), params.input_file_prefix[5] + '.nii.gz'))
-# data_mask = nii_mask.get_fdata()
+# Define levels from params.
+# print (params.regions['cervical'])
+levels = []
+for region in params.regions.keys():
+    levels = all_levels + params.regions[region]
 
 # Loop across spinal levels
-# TODO; define levels from params.
-levels = ['C1', 'C2']
 for level in levels:
     # Load data
     # This data has the following content for the 4th dimension:
@@ -51,7 +49,7 @@ for level in levels:
     # 5: WM mask
     logger.info("Load data...")
     nii = nib.load(params.file_prefix_all + level + ext)
-    #
+
     data = nii.get_fdata()
     # Crop around spinal cord, and only keep half of it.
     # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
@@ -61,17 +59,25 @@ for level in levels:
     data_crop = data[xmin:xmax, ymin:ymax, :]
 
     # DEBUG: print fig
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.figure import Figure
-    fig = Figure()
-    FigureCanvas(fig)
-    ax = fig.add_subplot(111)
-    ax.matshow(data_crop[:, :, 0, 5], cmap='gray')
-    fig.savefig('fig_data_crop5.png')
+    # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    # from matplotlib.figure import Figure
+    # fig = Figure()
+    # FigureCanvas(fig)
+    # ax = fig.add_subplot(111)
+    # ax.matshow(data_crop[:, :, 0, 5], cmap='gray')
+    # fig.savefig('fig_data_crop5.png')
 
     # Reshape to 1d
-    ind_mask = np.where(data_crop[:, :, 0, 5])
-    mask1d = np.squeeze(data_crop.reshape(-1, 1))
+    mask_crop = data_crop[:, :, 0, 5]
+    mask_crop = mask_crop.astype(bool)
+    ind_mask = np.where(mask_crop)
+    mask1d = np.squeeze(mask_crop.reshape(-1, 1))
+
+    # Process Paxinos atlas for display
+    # nii_paxinos = nib.load(os.path.join(params.FOLDER,params.file_paxinos + '.nii.gz'))
+    # paxinos3d = nii_paxinos.get_fdata()
+    # paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
+    # print (paxinos3d.shape)
 
     # Standardize data
     logger.info("Standardize data...")
@@ -80,6 +86,41 @@ for level in levels:
     scaler = StandardScaler()
     data2d_norm = scaler.fit_transform(data2d)
     del data2d
+
+    Build connectivity matrix
+    logger.info("Build connectivity matrix...")
+    connectivity = grid_to_graph(n_x=data_crop.shape[0],
+                                 n_y=data_crop.shape[1],
+                                 n_z=data_crop.shape[2],
+                                 mask=mask_crop)
+
+    del data_crop
+    Perform clustering
+    logger.info("Run clustering...")
+    num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
+    
+    for n_cluster in num_clusters:
+        logger.info("Number of clusters: {}".format(n_cluster))
+        clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
+        clustering.fit(data2d_norm[mask1d, :])
+        logger.info("Reshape labels...")
+        labels = np.zeros_like(mask_crop, dtype=np.int)
+        labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
+        del clustering
+
+        # Display clustering results
+        logger.info("Generate figures...")
+        fig = plt.figure(figsize=(20, 20))
+        plt.imshow(labels[:, :], cmap='Spectral')
+        plt.title(level)
+        plt.tight_layout()
+        fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, level))
+        fig.clear()
+        plt.close()
+
+        del data2d_norm
+
+        logger.info("Done!")
 
     # Cluster across metrics (dim 0 -> 4)
     # --> generates 2d*n (n = numb of clusters)
@@ -92,4 +133,4 @@ for level in levels:
 
 
 
-# TODO: __main__ to make it callable via CLI
+# # TODO: __main__ to make it callable via CLI
