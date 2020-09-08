@@ -41,6 +41,7 @@ for region in params.regions.keys():
     levels = levels + params.regions[region]
 
 # levels = ['C1','C2','C3']
+
 # Loop across spinal levels
 for level in levels:
     # Load data
@@ -53,12 +54,15 @@ for level in levels:
 
     data = nii.get_fdata()
     # print ('Data size: ' + str(data.shape))
+
     # Crop around spinal cord, and only keep half of it.
     # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
     # we can discard one half, without loosing information.
     xmin, xmax = (30, 75)
-    ymin, ymax = (40, 120)
+    ymin, ymax = (40, 105)
     data_crop = data[xmin:xmax, ymin:ymax, :]
+    # print ('Data size: ' + str(data_crop.shape))
+    xmin_pax, xmax_pax =(75, 120)
 
     # DEBUG: print fig
     # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -78,8 +82,13 @@ for level in levels:
     # Process Paxinos atlas for display
     nii_paxinos = nib.load(os.path.join(params.FOLDER,params.file_paxinos + '.nii.gz'))
     paxinos3d = nii_paxinos.get_fdata()
-    # print ('Paxinos size: ' + str(paxinos3d.shape))
+    
+    # Paxinos right side
+    # paxinos3d = paxinos3d[xmin_pax:xmax_pax, ymin:ymax, :]
+
+    #Paxinos left side
     paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
+    # print ('Paxinos size: ' + str(paxinos3d.shape))
     paxinos3d = np.clip(paxinos3d, 0, 1)
     paxinos2d_complete = np.zeros((paxinos3d.shape[0],paxinos3d.shape[1]))
     for tract in range (0,paxinos3d.shape[3]):
@@ -133,21 +142,31 @@ for level in levels:
         labels = np.zeros_like(mask_crop, dtype=np.int)
         labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
-     
+
         # Display clustering results
         logger.info("Generate figures...")
         fig = plt.figure(figsize=(10, 5))
         ax1 = fig.add_subplot(1,2,1)
-        ax1.imshow(labels[:, :], cmap='Spectral')
+        ax1.imshow(rot90(labels[:, :]), cmap='Spectral')
         ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
         # fig.title(level)
         # fig.tight_layout()
         ax2 = fig.add_subplot(1,2,2)
-        im = ax2.imshow(paxinos2d_complete, cmap='Spectral')
+        im = ax2.imshow(rot90(paxinos2d_complete), cmap='Spectral')
         ax2.set_title('Paxinos complete ' + level)
         # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
         # fig.colorbar(im, cax=cb_ax)
         fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, level))
+        fig.clear()
+        plt.close()
+
+        #Concatenate images
+        horizontal = np.concatenate((labels, paxinos2d_complete), axis = 0)
+        fig = plt.figure(figsize=(20, 20))
+        plt.imshow(rot90(horizontal), cmap='Spectral')
+        plt.title('Concatenated image for: ' + level)
+        plt.tight_layout()
+        fig.savefig('concatenated_image-{}.png'.format(level))
         fig.clear()
         plt.close()
 
