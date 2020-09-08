@@ -38,8 +38,9 @@ os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
 # print (params.regions['cervical'])
 levels = []
 for region in params.regions.keys():
-    levels = all_levels + params.regions[region]
+    levels = levels + params.regions[region]
 
+# levels = ['C1','C2','C3']
 # Loop across spinal levels
 for level in levels:
     # Load data
@@ -47,10 +48,11 @@ for level in levels:
     # 0: XX
     # 1: XX
     # 5: WM mask
-    logger.info("Load data...")
+    logger.info("\nLoad data for level: " + level)
     nii = nib.load(params.file_prefix_all + level + ext)
 
     data = nii.get_fdata()
+    # print ('Data size: ' + str(data.shape))
     # Crop around spinal cord, and only keep half of it.
     # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
     # we can discard one half, without loosing information.
@@ -74,10 +76,34 @@ for level in levels:
     mask1d = np.squeeze(mask_crop.reshape(-1, 1))
 
     # Process Paxinos atlas for display
-    # nii_paxinos = nib.load(os.path.join(params.FOLDER,params.file_paxinos + '.nii.gz'))
-    # paxinos3d = nii_paxinos.get_fdata()
-    # paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
-    # print (paxinos3d.shape)
+    nii_paxinos = nib.load(os.path.join(params.FOLDER,params.file_paxinos + '.nii.gz'))
+    paxinos3d = nii_paxinos.get_fdata()
+    # print ('Paxinos size: ' + str(paxinos3d.shape))
+    paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
+    paxinos3d = np.clip(paxinos3d, 0, 1)
+    paxinos2d_complete = np.zeros((paxinos3d.shape[0],paxinos3d.shape[1]))
+    for tract in range (0,paxinos3d.shape[3]):
+        paxinos2d = (paxinos3d[:,:,levels.index(level),tract])
+        paxinos2d[paxinos2d > 0] = tract + 1
+
+        # fig = plt.figure(figsize=(20, 20))
+        # plt.imshow(paxinos2d, cmap='Spectral')
+        # plt.title('Paxinos: ' + level + str(tract + 1))
+        # plt.tight_layout()
+        # fig.savefig('paxinos_level-{}_tract-{}.png'.format(level,tract + 1))
+        # fig.clear()
+        # plt.close()
+        # paxinos2d_complete = paxinos2d_complete + paxinos2d
+        paxinos2d_complete = np.where (paxinos2d_complete != 0, paxinos2d_complete, paxinos2d)
+
+    fig = plt.figure(figsize=(20, 20))
+    plt.imshow(paxinos2d_complete, cmap='Spectral')
+    plt.title('Paxinos complete ' + level)
+    plt.tight_layout()
+    fig.savefig('paxinos_complete_level-{}.png'.format(level))
+    fig.clear()
+    plt.close()
+
 
     # Standardize data
     logger.info("Standardize data...")
@@ -87,7 +113,7 @@ for level in levels:
     data2d_norm = scaler.fit_transform(data2d)
     del data2d
 
-    Build connectivity matrix
+    # Build connectivity matrix
     logger.info("Build connectivity matrix...")
     connectivity = grid_to_graph(n_x=data_crop.shape[0],
                                  n_y=data_crop.shape[1],
@@ -95,7 +121,7 @@ for level in levels:
                                  mask=mask_crop)
 
     del data_crop
-    Perform clustering
+    # Perform clustering
     logger.info("Run clustering...")
     num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
     
@@ -107,18 +133,25 @@ for level in levels:
         labels = np.zeros_like(mask_crop, dtype=np.int)
         labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
-
+     
         # Display clustering results
         logger.info("Generate figures...")
-        fig = plt.figure(figsize=(20, 20))
-        plt.imshow(labels[:, :], cmap='Spectral')
-        plt.title(level)
-        plt.tight_layout()
+        fig = plt.figure(figsize=(10, 5))
+        ax1 = fig.add_subplot(1,2,1)
+        ax1.imshow(labels[:, :], cmap='Spectral')
+        ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
+        # fig.title(level)
+        # fig.tight_layout()
+        ax2 = fig.add_subplot(1,2,2)
+        im = ax2.imshow(paxinos2d_complete, cmap='Spectral')
+        ax2.set_title('Paxinos complete ' + level)
+        # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
+        # fig.colorbar(im, cax=cb_ax)
         fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, level))
         fig.clear()
         plt.close()
 
-        del data2d_norm
+        # del data2d_norm
 
         logger.info("Done!")
 
@@ -128,9 +161,5 @@ for level in levels:
     # save in variable
 
 # display figure (matrix of slices) showing clusters on the right, and paxinos on the left, for each slice.
-
-
-
-
 
 # # TODO: __main__ to make it callable via CLI
