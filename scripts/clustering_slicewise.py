@@ -2,6 +2,8 @@
 
 # Perform clustering slicewise and generate figure comparing clustering across slices with Paxinos
 
+# TODO: create folder for outputs: clustering_slicewise
+
 import os
 import sys
 import seaborn as sns
@@ -46,9 +48,14 @@ for region in params.regions.keys():
 for level in levels:
     # Load data
     # This data has the following content for the 4th dimension:
+    # TODO: complete below
     # 0: XX
     # 1: XX
     # 5: WM mask
+    # 6: Paxinos tract 1
+    # 7: Paxinos tract 2
+    # ..
+    # 13: Paxinos tract 8
     logger.info("\nLoad data for level: " + level)
     nii = nib.load(params.file_prefix_all + level + ext)
 
@@ -62,8 +69,6 @@ for level in levels:
     ymin, ymax = (40, 105)
     data_crop = data[xmin:xmax, ymin:ymax, :]
     # print ('Data size: ' + str(data_crop.shape))
-    # Cropping box for Paxinos
-    xmin_pax, xmax_pax = (75, 120)
 
     # DEBUG: print fig
     # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -82,22 +87,18 @@ for level in levels:
     ind_mask = np.where(mask_crop)
     mask1d = np.squeeze(mask_crop.reshape(-1, 1))
 
-    # Process Paxinos atlas for display
-    nii_paxinos = nib.load(os.path.join(params.FOLDER,params.file_paxinos + '.nii.gz'))
+    # Load Paxinos atlas
+    # TODO: no need to load, we can use data
+    nii_paxinos = nib.load(os.path.join(params.FOLDER, params.file_paxinos + '.nii.gz'))
     paxinos3d = nii_paxinos.get_fdata()
-    
-    # Paxinos right side
-    # paxinos3d = paxinos3d[xmin_pax:xmax_pax, ymin:ymax, :]
-
-    #Paxinos left side
+    # Crop Paxinos
     paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
     # print ('Paxinos size: ' + str(paxinos3d.shape))
     paxinos3d = np.clip(paxinos3d, 0, 1)
-    paxinos2d_complete = np.zeros((paxinos3d.shape[0],paxinos3d.shape[1]))
-    for tract in range (0,paxinos3d.shape[3]):
-        paxinos2d = (paxinos3d[:,:,levels.index(level),tract])
+    paxinos2d_complete = np.zeros((paxinos3d.shape[0], paxinos3d.shape[1]))
+    for tract in range (0, paxinos3d.shape[3]):
+        paxinos2d = (paxinos3d[:, :, levels.index(level), tract])
         paxinos2d[paxinos2d > 0] = tract + 1
-
         # fig = plt.figure(figsize=(20, 20))
         # plt.imshow(paxinos2d, cmap='Spectral')
         # plt.title('Paxinos: ' + level + str(tract + 1))
@@ -106,7 +107,7 @@ for level in levels:
         # fig.clear()
         # plt.close()
         # paxinos2d_complete = paxinos2d_complete + paxinos2d
-        paxinos2d_complete = np.where (paxinos2d_complete != 0, paxinos2d_complete, paxinos2d)
+        paxinos2d_complete = np.where(paxinos2d_complete != 0, paxinos2d_complete, paxinos2d)
 
     fig = plt.figure(figsize=(20, 20))
     plt.imshow(paxinos2d_complete, cmap='Spectral')
@@ -116,11 +117,13 @@ for level in levels:
     fig.clear()
     plt.close()
 
+    # Reshape data used for clustering
+    # Here, we will perform clustering on the first 5 images (ie: selection on the 4th dimension)
+    data2d = data_crop[:, :, 0, 0:4].reshape(-1, 5)
 
     # Standardize data
     logger.info("Standardize data...")
-    # original_shape = data_crop.shape[0:3]
-    data2d = data_crop.reshape(-1, data_crop.shape[3])
+
     scaler = StandardScaler()
     data2d_norm = scaler.fit_transform(data2d)
     del data2d
