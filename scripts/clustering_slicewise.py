@@ -75,6 +75,8 @@ for level in levels:
     # fig.savefig('fig_data_crop5.png')
 
     # Reshape to 1d
+    # Note: 3rd dimension is a singleton (because single slice)
+    # Note: mask of WM corresponds to the 5th vector along the 4th dimension
     mask_crop = data_crop[:, :, 0, 5]
     mask_crop = mask_crop.astype(bool)
     ind_mask = np.where(mask_crop)
