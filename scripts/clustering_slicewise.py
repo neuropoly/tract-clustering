@@ -62,7 +62,8 @@ for level in levels:
     ymin, ymax = (40, 105)
     data_crop = data[xmin:xmax, ymin:ymax, :]
     # print ('Data size: ' + str(data_crop.shape))
-    xmin_pax, xmax_pax =(75, 120)
+    # Cropping box for Paxinos
+    xmin_pax, xmax_pax = (75, 120)
 
     # DEBUG: print fig
     # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
