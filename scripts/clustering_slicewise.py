@@ -119,11 +119,10 @@ for level in levels:
 
     # Reshape data used for clustering
     # Here, we will perform clustering on the first 5 images (ie: selection on the 4th dimension)
-    data2d = data_crop[:, :, 0, 0:4].reshape(-1, 5)
+    data2d = data_crop[:, :, 0, 0:5].reshape(-1, 5)
 
     # Standardize data
     logger.info("Standardize data...")
-
     scaler = StandardScaler()
     data2d_norm = scaler.fit_transform(data2d)
     del data2d
@@ -134,12 +133,11 @@ for level in levels:
                                  n_y=data_crop.shape[1],
                                  n_z=data_crop.shape[2],
                                  mask=mask_crop)
-
     del data_crop
+
     # Perform clustering
     logger.info("Run clustering...")
     num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
-    
     for n_cluster in num_clusters:
         logger.info("Number of clusters: {}".format(n_cluster))
         clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
@@ -152,12 +150,12 @@ for level in levels:
         # Display clustering results
         logger.info("Generate figures...")
         fig = plt.figure(figsize=(10, 5))
-        ax1 = fig.add_subplot(1,2,1)
+        ax1 = fig.add_subplot(1, 2, 1)
         ax1.imshow(rot90(labels[:, :]), cmap='Spectral')
         ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
         # fig.title(level)
         # fig.tight_layout()
-        ax2 = fig.add_subplot(1,2,2)
+        ax2 = fig.add_subplot(1, 2, 2)
         im = ax2.imshow(rot90(paxinos2d_complete), cmap='Spectral')
         ax2.set_title('Paxinos complete ' + level)
         # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
@@ -166,18 +164,11 @@ for level in levels:
         fig.clear()
         plt.close()
 
-        #Concatenate images
-        horizontal = np.concatenate((labels, paxinos2d_complete), axis = 0)
-        fig = plt.figure(figsize=(20, 20))
-        plt.imshow(rot90(horizontal), cmap='Spectral')
-        plt.title('Concatenated image for: ' + level)
-        plt.tight_layout()
-        fig.savefig('concatenated_image-{}.png'.format(level))
-        fig.clear()
-        plt.close()
+        # TODO: flip paxinos R-L, remove numbers, bring the two figs closer together
+
+        # TODO: adjust colormap of clustering to match paxinos
 
         # del data2d_norm
-
         logger.info("Done!")
 
     # Cluster across metrics (dim 0 -> 4)
