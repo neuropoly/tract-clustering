@@ -18,6 +18,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.metrics import mutual_info_score
 
+from utils import get_best_matching_color_with_paxinos
 import params
 
 
@@ -29,7 +30,7 @@ logging.root.addHandler(hdlr)
 
 # seaborn fig params
 sns.set(font_scale=1.4)
-sns.set_style("whitegrid", {'axes.grid' : False})
+sns.set_style("whitegrid", {'axes.grid': False})
 np.set_printoptions(threshold=np.inf)
 
 ext = '.nii'
@@ -147,19 +148,26 @@ for level in levels:
         labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
 
-        # Display clustering results
-        logger.info("Generate figures...")
+        logger.info("Generate figure...")
         fig = plt.figure(figsize=(10, 5))
+        # Display Paxinos
+        # fig.tight_layout()
+        ax = fig.add_subplot(1, 2, 2)
+        im = ax.imshow(rot90(paxinos2d_complete), cmap='Spectral')
+        ax.set_title('Paxinos complete ' + level)
+
+        # Find label color corresponding best to the Paxinos atlas
+        list_color = get_best_matching_color_with_paxinos(im=labels, imref=paxinos2d_complete)
+
+        # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
+        # fig.colorbar(im, cax=cb_ax)
+
+        # Display clustering results
         ax1 = fig.add_subplot(1, 2, 1)
         ax1.imshow(rot90(labels[:, :]), cmap='Spectral')
         ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
         # fig.title(level)
-        # fig.tight_layout()
-        ax2 = fig.add_subplot(1, 2, 2)
-        im = ax2.imshow(rot90(paxinos2d_complete), cmap='Spectral')
-        ax2.set_title('Paxinos complete ' + level)
-        # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
-        # fig.colorbar(im, cax=cb_ax)
+
         fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, level))
         fig.clear()
         plt.close()
