@@ -56,7 +56,7 @@ for level in levels:
     # 6: Paxinos tract 1
     # 7: Paxinos tract 2
     # ..
-    # 13: Paxinos tract 8
+    # 12: Paxinos tract 7
     logger.info("\nLoad data for level: " + level)
     nii = nib.load(params.file_prefix_all + level + ext)
 
@@ -89,34 +89,40 @@ for level in levels:
     mask1d = np.squeeze(mask_crop.reshape(-1, 1))
 
     # Load Paxinos atlas
-    # TODO: no need to load, we can use data
-    nii_paxinos = nib.load(os.path.join(params.FOLDER, params.file_paxinos + '.nii.gz'))
-    paxinos3d = nii_paxinos.get_fdata()
-    # Crop Paxinos
-    paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
-    # print ('Paxinos size: ' + str(paxinos3d.shape))
+    paxinos3d = np.squeeze(data_crop[:, :, 0, 6:13])
+    # clip between 0 and 1.
+    # note: we don't want to normalize, otherwise the background (which should be 0) will have a non-zero value.
     paxinos3d = np.clip(paxinos3d, 0, 1)
-    paxinos2d_complete = np.zeros((paxinos3d.shape[0], paxinos3d.shape[1]))
-    for tract in range (0, paxinos3d.shape[3]):
-        paxinos2d = (paxinos3d[:, :, levels.index(level), tract])
-        paxinos2d[paxinos2d > 0] = tract + 1
-        # fig = plt.figure(figsize=(20, 20))
-        # plt.imshow(paxinos2d, cmap='Spectral')
-        # plt.title('Paxinos: ' + level + str(tract + 1))
-        # plt.tight_layout()
-        # fig.savefig('paxinos_level-{}_tract-{}.png'.format(level,tract + 1))
-        # fig.clear()
-        # plt.close()
-        # paxinos2d_complete = paxinos2d_complete + paxinos2d
-        paxinos2d_complete = np.where(paxinos2d_complete != 0, paxinos2d_complete, paxinos2d)
-
-    fig = plt.figure(figsize=(20, 20))
-    plt.imshow(paxinos2d_complete, cmap='Spectral')
-    plt.title('Paxinos complete ' + level)
-    plt.tight_layout()
-    fig.savefig('paxinos_complete_level-{}.png'.format(level))
-    fig.clear()
-    plt.close()
+    #
+    # # TODO: no need to load, we can use data
+    # # TODO:
+    # nii_paxinos = nib.load(os.path.join(params.FOLDER, params.file_paxinos + '.nii.gz'))
+    # paxinos3d = nii_paxinos.get_fdata()
+    # # Crop Paxinos
+    # paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
+    # # print ('Paxinos size: ' + str(paxinos3d.shape))
+    # paxinos3d = np.clip(paxinos3d, 0, 1)
+    # paxinos2d_complete = np.zeros((paxinos3d.shape[0], paxinos3d.shape[1]))
+    # for tract in range (0, paxinos3d.shape[3]):
+    #     paxinos2d = (paxinos3d[:, :, levels.index(level), tract])
+    #     paxinos2d[paxinos2d > 0] = tract + 1
+    #     # fig = plt.figure(figsize=(20, 20))
+    #     # plt.imshow(paxinos2d, cmap='Spectral')
+    #     # plt.title('Paxinos: ' + level + str(tract + 1))
+    #     # plt.tight_layout()
+    #     # fig.savefig('paxinos_level-{}_tract-{}.png'.format(level,tract + 1))
+    #     # fig.clear()
+    #     # plt.close()
+    #     # paxinos2d_complete = paxinos2d_complete + paxinos2d
+    #     paxinos2d_complete = np.where(paxinos2d_complete != 0, paxinos2d_complete, paxinos2d)
+    #
+    # fig = plt.figure(figsize=(20, 20))
+    # plt.imshow(paxinos2d_complete, cmap='Spectral')
+    # plt.title('Paxinos complete ' + level)
+    # plt.tight_layout()
+    # fig.savefig('paxinos_complete_level-{}.png'.format(level))
+    # fig.clear()
+    # plt.close()
 
     # Reshape data used for clustering
     # Here, we will perform clustering on the first 5 images (ie: selection on the 4th dimension)
@@ -148,16 +154,35 @@ for level in levels:
         labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
 
+        # Create 4D array: last dimension corresponds to the cluster number. Cluster value is converted to 1.
+        a = list(labels.shape)
+        a.append(n_cluster)
+        labels3d = np.zeros(a)
+        for i_label in range(n_cluster):
+            ind_label = np.argwhere(labels == i_label + 1)
+            for i in ind_label:
+                labels3d[i[0], i[1], i_label] = 1
+
         logger.info("Generate figure...")
         fig = plt.figure(figsize=(10, 5))
+
         # Display Paxinos
-        # fig.tight_layout()
+        # TODO: generalize BASE_COLORS for more than 8 labels
         ax = fig.add_subplot(1, 2, 2)
-        im = ax.imshow(rot90(paxinos2d_complete), cmap='Spectral')
-        ax.set_title('Paxinos complete ' + level)
+        ax.set_facecolor((1, 1, 1))
+        for i_label in range(paxinos3d.shape[2]):
+            labels_rgb = np.zeros([paxinos3d.shape[0], paxinos3d.shape[1], 4])
+            for ix in range(paxinos3d.shape[0]):
+                for iy in range(paxinos3d.shape[1]):
+                    ind_color = list(params.colors.keys())[i_label]
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
+            ax.imshow(rot90(labels_rgb))
+        plt.axis('off')
+        plt.title("Paxinos atlas", pad=18)
+        plt.tight_layout()
 
         # Find label color corresponding best to the Paxinos atlas
-        list_color = get_best_matching_color_with_paxinos(im=labels, imref=paxinos2d_complete)
+        list_color = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
         # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
         # fig.colorbar(im, cax=cb_ax)
