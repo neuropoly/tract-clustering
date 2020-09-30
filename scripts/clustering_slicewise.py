@@ -2,8 +2,6 @@
 
 # Perform clustering slicewise and generate figure comparing clustering across slices with Paxinos
 
-# TODO: create folder for outputs: clustering_slicewise
-
 import os
 import sys
 import seaborn as sns
@@ -17,6 +15,7 @@ from sklearn.cluster import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.metrics import mutual_info_score
+import shutil
 
 from utils import get_best_matching_color_with_paxinos
 import params
@@ -35,10 +34,17 @@ np.set_printoptions(threshold=np.inf)
 
 ext = '.nii'
 
+path_output_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,params.OUTPUT_FOLDER_SLICEWISE)
+
+if os.path.exists(path_output_folder_results_clustering):
+    shutil.rmtree(path_output_folder_results_clustering)
+
+os.makedirs(path_output_folder_results_clustering)
+
+
 os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
 
 # Define levels from params.
-# print (params.regions['cervical'])
 levels = []
 for region in params.regions.keys():
     levels = levels + params.regions[region]
@@ -50,8 +56,11 @@ for level in levels:
     # Load data
     # This data has the following content for the 4th dimension:
     # TODO: complete below
-    # 0: XX
-    # 1: XX
+    # 0: Axon Density
+    # 1: Axon Equivalent diameter
+    # 2: Axon volume Fraction
+    # 3: G-Ratio
+    # 4: Myelin Thickness
     # 5: WM mask
     # 6: Paxinos tract 1
     # 7: Paxinos tract 2
@@ -61,7 +70,6 @@ for level in levels:
     nii = nib.load(params.file_prefix_all + level + ext)
 
     data = nii.get_fdata()
-    # print ('Data size: ' + str(data.shape))
 
     # Crop around spinal cord, and only keep half of it.
     # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
@@ -69,16 +77,6 @@ for level in levels:
     xmin, xmax = (30, 75)
     ymin, ymax = (40, 105)
     data_crop = data[xmin:xmax, ymin:ymax, :]
-    # print ('Data size: ' + str(data_crop.shape))
-
-    # DEBUG: print fig
-    # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    # from matplotlib.figure import Figure
-    # fig = Figure()
-    # FigureCanvas(fig)
-    # ax = fig.add_subplot(111)
-    # ax.matshow(data_crop[:, :, 0, 5], cmap='gray')
-    # fig.savefig('fig_data_crop5.png')
 
     # Reshape to 1d
     # Note: 3rd dimension is a singleton (because single slice)
@@ -93,36 +91,6 @@ for level in levels:
     # clip between 0 and 1.
     # note: we don't want to normalize, otherwise the background (which should be 0) will have a non-zero value.
     paxinos3d = np.clip(paxinos3d, 0, 1)
-    #
-    # # TODO: no need to load, we can use data
-    # # TODO:
-    # nii_paxinos = nib.load(os.path.join(params.FOLDER, params.file_paxinos + '.nii.gz'))
-    # paxinos3d = nii_paxinos.get_fdata()
-    # # Crop Paxinos
-    # paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
-    # # print ('Paxinos size: ' + str(paxinos3d.shape))
-    # paxinos3d = np.clip(paxinos3d, 0, 1)
-    # paxinos2d_complete = np.zeros((paxinos3d.shape[0], paxinos3d.shape[1]))
-    # for tract in range (0, paxinos3d.shape[3]):
-    #     paxinos2d = (paxinos3d[:, :, levels.index(level), tract])
-    #     paxinos2d[paxinos2d > 0] = tract + 1
-    #     # fig = plt.figure(figsize=(20, 20))
-    #     # plt.imshow(paxinos2d, cmap='Spectral')
-    #     # plt.title('Paxinos: ' + level + str(tract + 1))
-    #     # plt.tight_layout()
-    #     # fig.savefig('paxinos_level-{}_tract-{}.png'.format(level,tract + 1))
-    #     # fig.clear()
-    #     # plt.close()
-    #     # paxinos2d_complete = paxinos2d_complete + paxinos2d
-    #     paxinos2d_complete = np.where(paxinos2d_complete != 0, paxinos2d_complete, paxinos2d)
-    #
-    # fig = plt.figure(figsize=(20, 20))
-    # plt.imshow(paxinos2d_complete, cmap='Spectral')
-    # plt.title('Paxinos complete ' + level)
-    # plt.tight_layout()
-    # fig.savefig('paxinos_complete_level-{}.png'.format(level))
-    # fig.clear()
-    # plt.close()
 
     # Reshape data used for clustering
     # Here, we will perform clustering on the first 5 images (ie: selection on the 4th dimension)
@@ -176,39 +144,40 @@ for level in levels:
                 for iy in range(paxinos3d.shape[1]):
                     ind_color = list(params.colors.keys())[i_label]
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
-            ax.imshow(rot90(labels_rgb))
+            ax.imshow(np.fliplr(rot90(labels_rgb)), aspect="auto")
         plt.axis('off')
-        plt.title("Paxinos atlas", pad=18)
-        plt.tight_layout()
-
+        plt.title("Paxinos atlas")
         # Find label color corresponding best to the Paxinos atlas
         list_color = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
-        # cb_ax = fig.add_axes([0.83, 0.1, 0.02, 0.8])
-        # fig.colorbar(im, cax=cb_ax)
-
         # Display clustering results
-        ax1 = fig.add_subplot(1, 2, 1)
-        ax1.imshow(rot90(labels[:, :]), cmap='Spectral')
-        ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
+        # ax1 = fig.add_subplot(1, 2, 1)
+        # ax1.imshow(rot90(labels[:, :]), cmap='Spectral')
+        # ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
         # fig.title(level)
+        # fig.savefig(os.path.join(path_output_folder_results_clustering,
+        #                          'clustering_results_ncluster{}_{}_n.png'.format(n_cluster, level)))
 
-        fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, level))
+        # Display clustering
+        ax2 = fig.add_subplot(1, 2, 1)
+        for i_label in range(n_cluster):
+            labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
+            for ix in range(labels3d.shape[0]):
+                for iy in range(labels3d.shape[1]):
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label])
+            ax2.imshow(rot90(labels_rgb), aspect="auto")
+        plt.axis('off')
+        plt.title("Cluster map")
+        plt.tight_layout()
+        fig.subplots_adjust(hspace=0, wspace=0.01)
+        fig.savefig(os.path.join(path_output_folder_results_clustering,
+                                 'clustering_results_ncluster{}_{}.png'.format(n_cluster, level)))
         fig.clear()
         plt.close()
 
-        # TODO: flip paxinos R-L, remove numbers, bring the two figs closer together
-
         # TODO: adjust colormap of clustering to match paxinos
 
-        # del data2d_norm
         logger.info("Done!")
 
-    # Cluster across metrics (dim 0 -> 4)
-    # --> generates 2d*n (n = numb of clusters)
-
-    # save in variable
-
-# display figure (matrix of slices) showing clusters on the right, and paxinos on the left, for each slice.
 
 # # TODO: __main__ to make it callable via CLI
