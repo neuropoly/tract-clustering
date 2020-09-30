@@ -11,6 +11,7 @@ import numpy as np
 import nibabel as nib
 
 import params
+import logging
 
 
 def get_best_matching_color_with_paxinos(im=None, imref=None):
@@ -20,6 +21,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     :param imref: 3D image with tract to match: X, Y, TRACT
     :return: list: RGB color
     """
+    logger = logging.getLogger(__name__)
     sorted_score = []
     list_color = []
     # Match colors with reference image
@@ -31,18 +33,18 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
         #                               imref[..., i_label].reshape(np.multiply(im.shape[0], im.shape[1])))
         #             for i in range(im.shape[2])
         #             ]
-        logger.debug("Ref label #{}: Mutual information: {}".format(i_label, score))
+        logger.debug("Ref label #{}: Mutual information: {}".format(i_label, score)) 
         sorted_score.append(np.argmax(score))
-        # list_color.append(list(params.colors.keys())[np.argmax(score)])
+        list_color.append(list(params.colors.keys())[np.argmax(score)])
 
-    # Fill with remainind colors
+    # Fill with remaining colors
     for i in range(8, 8+im.shape[2]-imref.shape[2]):
         list_color.append(list(params.colors.keys())[i])
 
     logger.debug("Selected colors: {}".format(list_color))
 
     # debugging
-    for i in range(8):
-        matshow(imref[..., i], fignum=i+1, cmap=cm.gray), plt.colorbar(), show()
+    # for i in range(8):
+    #     matshow(imref[..., i], fignum=i+1, cmap=cm.gray), plt.colorbar(), show()
 
     return list_color
