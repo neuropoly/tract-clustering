@@ -8,6 +8,7 @@
 
 FOLDER = '/Users/julien/Desktop/AtlasRat'  # Path to folder that contains all slices and all metrics
 OUTPUT_FOLDER = 'results'
+OUTPUT_FOLDER_SLICEWISE = 'clustering_slicewise'
 
 file_prefix = 'AtlasRat_'
 
