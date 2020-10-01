@@ -145,7 +145,7 @@ for level in levels:
         plt.axis('off')
         plt.title("Paxinos atlas")
         # Find label color corresponding best to the Paxinos atlas
-        list_color = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
+        list_color, list_intensity = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
         # Display clustering results
         # ax1 = fig.add_subplot(1, 2, 1)
@@ -161,7 +161,7 @@ for level in levels:
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
-                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label])
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * list_intensity[i_label])
             ax2.imshow(rot90(labels_rgb), aspect="auto")
         plt.axis('off')
         plt.title("Cluster map")
