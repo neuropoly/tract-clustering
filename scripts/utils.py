@@ -24,11 +24,12 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     sorted_score = []
     list_color = []
     max_score, max_index = [], []
+    list_intensity = []
     # Match colors with reference image
-    for i_label in range(imref.shape[2]):
+    for i_label in range(im.shape[2]):
         score = []
-        for i in range(im.shape[2]):
-            score.append(np.sum(np.multiply(im[..., i], imref[..., i_label])))
+        for i in range(imref.shape[2]):
+            score.append(np.sum(np.multiply(im[..., i_label], imref[..., i])))
         # compute MI between a given tract from the reference image and all tracts from the input image
         # score = []
         # score = [np.sum(np.multiply(im[..., i], imref[..., i_label])) for i in range(im.shape[2])]
@@ -43,13 +44,18 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
         max_score.append(np.max(score))
         # list_color.append(list(params.colors.keys())[np.argmax(score)])
 
-    for i_label in range(imref.shape[2]):
+    for i_label in range(im.shape[2]):
         # Find the clustering labels that correspond to this Paxinos label
         index_matched = list(np.where(np.array(max_index) == i_label)[0])
         # Normalize the scores of the matched labels between 0 and 1 (eg: scores 42, 21 --> 1, 0.5)
         # list_color --> color for clustering labels
         # list_intensity --> intensity value for clustering labels
-
+        intensity = 1
+        if index_matched:
+            for index_position in index_matched:
+                list_color.insert(index_position, list(params.colors.keys())[i_label])
+                list_intensity.insert(index_position,intensity)
+                intensity /= 1.15
     #
     # # Fill with remaining colors
     # for i in range(8, 8+im.shape[2]-imref.shape[2]):
