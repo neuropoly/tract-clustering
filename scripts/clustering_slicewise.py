@@ -22,10 +22,7 @@ import params
 
 
 # Initialize logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # default: logging.DEBUG, logging.INFO
-hdlr = logging.StreamHandler(sys.stdout)
-logging.root.addHandler(hdlr)
+logging.basicConfig(level=logging.DEBUG)
 
 # seaborn fig params
 sns.set(font_scale=1.4)
@@ -49,7 +46,7 @@ levels = []
 for region in params.regions.keys():
     levels = levels + params.regions[region]
 
-# levels = ['C1','C2','C3']
+levels = ['C1','C2','C3']
 
 # Loop across spinal levels
 for level in levels:
@@ -66,7 +63,7 @@ for level in levels:
     # 7: Paxinos tract 2
     # ..
     # 12: Paxinos tract 7
-    logger.info("\nLoad data for level: " + level)
+    logging.info("\nLoad data for level: " + level)
     nii = nib.load(params.file_prefix_all + level + ext)
 
     data = nii.get_fdata()
@@ -97,13 +94,13 @@ for level in levels:
     data2d = data_crop[:, :, 0, 0:5].reshape(-1, 5)
 
     # Standardize data
-    logger.info("Standardize data...")
+    logging.info("Standardize data...")
     scaler = StandardScaler()
     data2d_norm = scaler.fit_transform(data2d)
     del data2d
 
     # Build connectivity matrix
-    logger.info("Build connectivity matrix...")
+    logging.info("Build connectivity matrix...")
     connectivity = grid_to_graph(n_x=data_crop.shape[0],
                                  n_y=data_crop.shape[1],
                                  n_z=data_crop.shape[2],
@@ -111,13 +108,13 @@ for level in levels:
     del data_crop
 
     # Perform clustering
-    logger.info("Run clustering...")
+    logging.info("Run clustering...")
     num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
     for n_cluster in num_clusters:
-        logger.info("Number of clusters: {}".format(n_cluster))
+        logging.info("Number of clusters: {}".format(n_cluster))
         clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
         clustering.fit(data2d_norm[mask1d, :])
-        logger.info("Reshape labels...")
+        logging.info("Reshape labels...")
         labels = np.zeros_like(mask_crop, dtype=np.int)
         labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
@@ -131,7 +128,7 @@ for level in levels:
             for i in ind_label:
                 labels3d[i[0], i[1], i_label] = 1
 
-        logger.info("Generate figure...")
+        logging.info("Generate figure...")
         fig = plt.figure(figsize=(10, 5))
 
         # Display Paxinos
@@ -177,7 +174,7 @@ for level in levels:
 
         # TODO: adjust colormap of clustering to match paxinos
 
-        logger.info("Done!")
+        logging.info("Done!")
 
 
 # # TODO: __main__ to make it callable via CLI

@@ -17,11 +17,10 @@ import logging
 def get_best_matching_color_with_paxinos(im=None, imref=None):
     """
     Find the color index for im that corresponds to the tract of imref with the maximum overlap
-    :param im: 3D image: X, Y, TRACT
-    :param imref: 3D image with tract to match: X, Y, TRACT
+    :param im: numpy.array: X, Y, TRACT
+    :param imref: numpy.array: 3D image with tract to match: X, Y, TRACT
     :return: list: RGB color
     """
-    logger = logging.getLogger(__name__)
     sorted_score = []
     list_color = []
     # Match colors with reference image
@@ -33,7 +32,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
         #                               imref[..., i_label].reshape(np.multiply(im.shape[0], im.shape[1])))
         #             for i in range(im.shape[2])
         #             ]
-        logger.debug("Ref label #{}: Mutual information: {}".format(i_label, score)) 
+        logging.debug("Ref label #{}: Mutual information: {}".format(i_label, score))
         sorted_score.append(np.argmax(score))
         list_color.append(list(params.colors.keys())[np.argmax(score)])
 
@@ -41,7 +40,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     for i in range(8, 8+im.shape[2]-imref.shape[2]):
         list_color.append(list(params.colors.keys())[i])
 
-    logger.debug("Selected colors: {}".format(list_color))
+    logging.debug("Selected colors: {}".format(list_color))
 
     # debugging
     # for i in range(8):
