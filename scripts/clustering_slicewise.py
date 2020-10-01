@@ -46,13 +46,12 @@ levels = []
 for region in params.regions.keys():
     levels = levels + params.regions[region]
 
-levels = ['C1','C2','C3']
+# levels = ['C1','C2','C3']
 
 # Loop across spinal levels
 for level in levels:
     # Load data
     # This data has the following content for the 4th dimension:
-    # TODO: complete below
     # 0: Axon Density
     # 1: Axon Equivalent diameter
     # 2: Axon volume Fraction
@@ -147,14 +146,6 @@ for level in levels:
         # Find label color corresponding best to the Paxinos atlas
         list_color, list_intensity = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
-        # Display clustering results
-        # ax1 = fig.add_subplot(1, 2, 1)
-        # ax1.imshow(rot90(labels[:, :]), cmap='Spectral')
-        # ax1.set_title('Clustering_results_ncluster{}_{}'.format(n_cluster, level))
-        # fig.title(level)
-        # fig.savefig(os.path.join(path_output_folder_results_clustering,
-        #                          'clustering_results_ncluster{}_{}_n.png'.format(n_cluster, level)))
-
         # Display clustering
         ax2 = fig.add_subplot(1, 2, 1)
         for i_label in range(n_cluster):
@@ -171,8 +162,6 @@ for level in levels:
                                  'clustering_results_ncluster{}_{}.png'.format(n_cluster, level)))
         fig.clear()
         plt.close()
-
-        # TODO: adjust colormap of clustering to match paxinos
 
         logging.info("Done!")
 
