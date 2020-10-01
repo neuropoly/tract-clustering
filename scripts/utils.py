@@ -56,11 +56,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
                 list_color.insert(index_position, list(params.colors.keys())[i_label])
                 list_intensity.insert(index_position,intensity)
                 intensity /= 1.15
-    #
-    # # Fill with remaining colors
-    # for i in range(8, 8+im.shape[2]-imref.shape[2]):
-    #     list_color.append(list(params.colors.keys())[i])
-
+    
     logging.debug("Selected colors: {}".format(list_color))
 
     # debugging
