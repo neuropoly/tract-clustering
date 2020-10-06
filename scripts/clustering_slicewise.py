@@ -46,7 +46,7 @@ levels = []
 for region in params.regions.keys():
     levels = levels + params.regions[region]
 
-# levels = ['C1','C2','C3']
+levels = ['C1','C2','C3']
 
 # Loop across spinal levels
 for level in levels:
@@ -152,7 +152,7 @@ for level in levels:
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
-                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * list_intensity[i_label])
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * (list_intensity[i_label]))
             ax2.imshow(rot90(labels_rgb), aspect="auto")
         plt.axis('off')
         plt.title("Cluster map")

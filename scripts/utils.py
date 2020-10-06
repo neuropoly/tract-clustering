@@ -13,6 +13,15 @@ import nibabel as nib
 import params
 import logging
 
+def generate_intensity_list(n):
+    start = 0.2
+    end = 1
+    if n < 2:
+        raise Exception("behaviour not defined for n<2")
+    step = (end - start) / float(n - 1)
+    intensity_list = [(round((start + x * step), 2)) for x in range(n)]
+    return intensity_list
+
 
 def get_best_matching_color_with_paxinos(im=None, imref=None):
     """
@@ -47,16 +56,19 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     for i_label in range(im.shape[2]):
         # Find the clustering labels that correspond to this Paxinos label
         index_matched = list(np.where(np.array(max_index) == i_label)[0])
-        # Normalize the scores of the matched labels between 0 and 1 (eg: scores 42, 21 --> 1, 0.5)
         # list_color --> color for clustering labels
         # list_intensity --> intensity value for clustering labels
-        intensity = 1
         if index_matched:
+            values_list_intensity = []
+            # Normalize the scores of the matched labels between 0.2 and 1
+            if len(index_matched) > 1:
+                values_list_intensity = generate_intensity_list(len(index_matched))
+            else:
+                values_list_intensity.append(1.0)
             for index_position in index_matched:
                 list_color.insert(index_position, list(params.colors.keys())[i_label])
-                list_intensity.insert(index_position,intensity)
-                intensity /= 1.15
-    
+                list_intensity.insert(index_position,values_list_intensity[index_matched.index(index_position)])
+
     logging.debug("Selected colors: {}".format(list_color))
 
     # debugging
