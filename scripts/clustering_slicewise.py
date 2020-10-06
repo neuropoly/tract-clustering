@@ -46,7 +46,7 @@ levels = []
 for region in params.regions.keys():
     levels = levels + params.regions[region]
 
-levels = ['C1','C2','C3']
+# levels = ['C1','C2','C3']
 
 # Loop across spinal levels
 for level in levels:
