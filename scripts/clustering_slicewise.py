@@ -163,7 +163,7 @@ for level in levels:
         fig.clear()
         plt.close()
 
-        logging.info("Done!")
+    logging.info("Done!")
 
 
 # # TODO: __main__ to make it callable via CLI

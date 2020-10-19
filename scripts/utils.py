@@ -34,44 +34,35 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     list_color = []
     max_score, max_index = [], []
     list_intensity = []
-    # Match colors with reference image
+    # Loop across labels from clustering image, compute overlap and assign color
     for i_label in range(im.shape[2]):
         score = []
+        # Compute similarity score between clustering label and each of the Paxinos label
         for i in range(imref.shape[2]):
             score.append(np.sum(np.multiply(im[..., i_label], imref[..., i])))
-        # compute MI between a given tract from the reference image and all tracts from the input image
-        # score = []
-        # score = [np.sum(np.multiply(im[..., i], imref[..., i_label])) for i in range(im.shape[2])]
-        #
-        # mi_score = [mutual_info_score(im[..., i].reshape(np.multiply(im.shape[0], im.shape[1])),
-        #                               imref[..., i_label].reshape(np.multiply(im.shape[0], im.shape[1])))
-        #             for i in range(im.shape[2])
-        #             ]
-        # sorted_score.append(np.argmax(score))
         max_index.append(np.argmax(score))
         max_score.append(np.max(score))
-        logging.debug("Ref label #{} → #{} - {}: {}".format(i_label, np.argmax(score), list(params.colors.keys())[np.argmax(score)], score))
+        logging.debug("Clustering label: #{} | Ref label: #{} | Color: {} | Scores: {}".format(i_label, np.argmax(score), list(params.colors.keys())[np.argmax(score)], score))
         # Find the clustering labels that correspond to this Paxinos label
         # list_color --> color for clustering labels
         list_color.append(list(params.colors.keys())[np.argmax(score)])
 
+    # Loop across labels from clustering image and assign intensity based on computed overlap score
     for i_label in range(im.shape[2]):
         index_matched = list(np.where(np.array(max_index) == i_label)[0])
         # list_intensity --> intensity value for clustering labels
         if index_matched:
             values_list_intensity = []
-    #         # Normalize the scores of the matched labels between 0.2 and 1
+            # Normalize the scores of the matched labels between 0.2 and 1
             if len(index_matched) > 1:
                 values_list_intensity = generate_intensity_list(len(index_matched))
+            # If there is only one score, set intensity value to 1
             else:
                 values_list_intensity.append(1.0)
             for index_position in index_matched:
                 list_intensity.insert(index_position,values_list_intensity[index_matched.index(index_position)])
 
     logging.debug("Selected colors: {}".format(list_color))
-
-    # debugging
-    # for i in range(8):
-    #     matshow(imref[..., i], fignum=i+1, cmap=cm.gray), plt.colorbar(), show()
+    logging.debug("Selected intensities: {}".format(list_intensity))
 
     return list_color, list_intensity
