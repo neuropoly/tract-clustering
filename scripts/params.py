@@ -6,7 +6,7 @@
 # PARAMETERS THAT ARE SPECIFIC TO THE INPUT DATA
 # ======================================================================================================================
 
-FOLDER = '/Users/julien/Desktop/AtlasRat'  # Path to folder that contains all slices and all metrics
+FOLDER = '/Users/julien/data/AtlasRat'  # Path to folder that contains all slices and all metrics
 OUTPUT_FOLDER = 'results'
 OUTPUT_FOLDER_SLICEWISE = 'clustering_slicewise'
 
