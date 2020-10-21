@@ -75,9 +75,9 @@ def crop_clustering_slicewise(path_clustering_slicewise_export_folder,path_folde
             file_path_output = os.path.join(path_clustering_slicewise_export_folder, file)
             img = Image.open(file_path_input)
             left = 45 
-            top = 10
+            top = 20
             right = left + 610
-            bottom = top + 430
+            bottom = top + 450
             img_res = img.crop((left, top, right, bottom)) 
             img_res.save(file_path_output)
 
@@ -100,6 +100,6 @@ def crop_concat_within_region(path_concat_within_region_export_folder):
             img_res = img.crop((left, top, right, bottom)) 
             img_res.save(file_path_output)
 
-# generate_paxinos_slicewise(path_paxinos_export_folder)
-# crop_clustering_slicewise(path_clustering_slicewise_export_folder,path_folder_results_clustering)
+generate_paxinos_slicewise(path_paxinos_export_folder)
+crop_clustering_slicewise(path_clustering_slicewise_export_folder,path_folder_results_clustering)
 crop_concat_within_region(path_concat_within_region_export_folder)
