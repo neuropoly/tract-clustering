@@ -177,7 +177,7 @@ def generate_clustering_per_region(region):
         plt.axis('off')
         # plt.title("Cluster map", pad=18)
         plt.tight_layout()
-        fig.subplots_adjust(hspace=0, wspace=0.1)
+        fig.subplots_adjust(hspace=0, wspace=0.01)
         fig.savefig('clustering_results_avgz_{}_ncluster{}.png'.format(region, n_cluster))
 
     del data2d_norm
