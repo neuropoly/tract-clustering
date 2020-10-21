@@ -16,15 +16,13 @@ ext = '.nii'
 os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
 path_paxinos_export_folder = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,'paxinos_slicewise')
 path_clustering_slicewise_export_folder = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,'crop_clustering_slicewise')
+path_concat_within_region_export_folder = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,'crop_concat_within_region')
 path_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,params.OUTPUT_FOLDER_SLICEWISE)
 
-if not os.path.exists(path_paxinos_export_folder):
-   os.makedirs(path_paxinos_export_folder)
-
-if not os.path.exists(path_clustering_slicewise_export_folder):
-   os.makedirs(path_clustering_slicewise_export_folder)
-
-def generate_paxinos_slicewise():
+def generate_paxinos_slicewise(path_paxinos_export_folder):
+    print ('\n Running generate_paxinos_slicewise')
+    if not os.path.exists(path_paxinos_export_folder):
+        os.makedirs(path_paxinos_export_folder)
     # Define levels from params.
     levels = []
     for region in params.regions.keys():
@@ -65,7 +63,10 @@ def generate_paxinos_slicewise():
             img_res = img.crop((left, top, right, bottom)) 
             img_res.save(file_path)
 
-def crop_clustering_slicewise(path_folder_results_clustering):
+def crop_clustering_slicewise(path_clustering_slicewise_export_folder,path_folder_results_clustering):
+    print ('\n Running crop_clustering_slicewise')
+    if not os.path.exists(path_clustering_slicewise_export_folder):
+        os.makedirs(path_clustering_slicewise_export_folder)
     # Crop clustering slice-wise images
     list_files = os.listdir(path_folder_results_clustering)
     for file in list_files:
@@ -80,5 +81,25 @@ def crop_clustering_slicewise(path_folder_results_clustering):
             img_res = img.crop((left, top, right, bottom)) 
             img_res.save(file_path_output)
 
-generate_paxinos_slicewise()
-crop_clustering_slicewise(path_folder_results_clustering)
+def crop_concat_within_region(path_concat_within_region_export_folder):
+    print ('\n Running crop_concat_within_region')
+    if not os.path.exists(path_concat_within_region_export_folder):
+        os.makedirs(path_concat_within_region_export_folder)
+    # Crop concat_within_region images
+    list_files = os.listdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region))
+    print (list_files)
+    for file in list_files:
+        if file.startswith('clustering_results_avgz'):
+            file_path_input = os.path.join(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region), file)
+            file_path_output = os.path.join(path_concat_within_region_export_folder, file)
+            img = Image.open(file_path_input)
+            left = 15 
+            top = 60
+            right = left + 670
+            bottom = top + 600
+            img_res = img.crop((left, top, right, bottom)) 
+            img_res.save(file_path_output)
+
+# generate_paxinos_slicewise(path_paxinos_export_folder)
+# crop_clustering_slicewise(path_clustering_slicewise_export_folder,path_folder_results_clustering)
+crop_concat_within_region(path_concat_within_region_export_folder)
