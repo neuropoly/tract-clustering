@@ -108,7 +108,7 @@ for level in levels:
 
     # Perform clustering
     logging.info("Run clustering...")
-    num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [8, 9, 10, 11]  # [5, 6, 7, 8, 9, 10, 11]
     for n_cluster in num_clusters:
         logging.info("Number of clusters: {}".format(n_cluster))
         clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
@@ -128,7 +128,7 @@ for level in levels:
                 labels3d[i[0], i[1], i_label] = 1
 
         logging.info("Generate figure...")
-        fig = plt.figure(figsize=(10, 5))
+        fig = plt.figure(figsize=(7, 5.5))
 
         # Display Paxinos
         # TODO: generalize BASE_COLORS for more than 8 labels
@@ -140,9 +140,9 @@ for level in levels:
                 for iy in range(paxinos3d.shape[1]):
                     ind_color = list(params.colors.keys())[i_label]
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
-            ax.imshow(np.fliplr(rot90(labels_rgb)), aspect="auto")
+            ax.imshow(np.fliplr(rot90(labels_rgb)), aspect="equal")
         plt.axis('off')
-        plt.title("Paxinos atlas")
+        # plt.title("Paxinos atlas")
         # Find label color corresponding best to the Paxinos atlas
         list_color, list_intensity = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
@@ -153,9 +153,9 @@ for level in levels:
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * (list_intensity[i_label]))
-            ax2.imshow(rot90(labels_rgb), aspect="auto")
+            ax2.imshow(rot90(labels_rgb), aspect="equal")
         plt.axis('off')
-        plt.title("Cluster map")
+        # plt.title("Cluster map")
         plt.tight_layout()
         fig.subplots_adjust(hspace=0, wspace=0.01)
         fig.savefig(os.path.join(path_output_folder_results_clustering,
