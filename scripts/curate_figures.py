@@ -94,9 +94,9 @@ def crop_concat_within_region(path_concat_within_region_export_folder):
             file_path_output = os.path.join(path_concat_within_region_export_folder, file)
             img = Image.open(file_path_input)
             left = 15 
-            top = 60
+            top = 80
             right = left + 670
-            bottom = top + 600
+            bottom = top + 530
             img_res = img.crop((left, top, right, bottom)) 
             img_res.save(file_path_output)
 
