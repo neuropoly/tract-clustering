@@ -1,6 +1,6 @@
 # #!/usr/bin/env python
 
-# Perform clustering slicewise and generate figure comparing clustering across slices with Paxinos
+# Perform clustering slicewise and generate figure comparing clustering across slices with Watson atlas
 
 import os
 import sys
