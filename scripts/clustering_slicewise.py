@@ -31,22 +31,17 @@ np.set_printoptions(threshold=np.inf)
 
 ext = '.nii'
 
+# Deal with output folder
 path_output_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,params.OUTPUT_FOLDER_SLICEWISE)
-
 if os.path.exists(path_output_folder_results_clustering):
     shutil.rmtree(path_output_folder_results_clustering)
-
 os.makedirs(path_output_folder_results_clustering)
-
-
 os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
 
-# Define levels from params.
+# Define spinal levels from params.
 levels = []
 for region in params.regions.keys():
     levels = levels + params.regions[region]
-
-# levels = ['C1','C2','C3']
 
 # Loop across spinal levels
 for level in levels:
@@ -89,7 +84,7 @@ for level in levels:
     paxinos3d = np.clip(paxinos3d, 0, 1)
 
     # Reshape data used for clustering
-    # Here, we will perform clustering on the first 5 images (ie: selection on the 4th dimension)
+    # Here, we will perform clustering on the first 5 volumes (ie: selection on the 4th dimension)
     data2d = data_crop[:, :, 0, 0:5].reshape(-1, 5)
 
     # Standardize data
