@@ -13,12 +13,12 @@ Data:
 - Unzip
 
 Code:
-- Download this code:
+- Download this repository:
 ~~~
 git clone https://github.com/neuropoly/tract-clustering.git
 ~~~
 
-- Install dependencies
+- Install package and dependencies
 ~~~
 cd tract-clustering
 pip install -e .
