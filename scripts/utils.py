@@ -30,7 +30,6 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     :param imref: numpy.array: 3D image with tract to match: X, Y, TRACT
     :return: list: RGB color
     """
-    sorted_score = []
     list_color = []
     max_score, max_index = [], []
     list_intensity = []
