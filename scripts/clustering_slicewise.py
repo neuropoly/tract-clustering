@@ -119,7 +119,7 @@ for level in levels:
                 labels3d[i[0], i[1], i_label] = 1
 
         logging.info("Generate figure...")
-        fig = plt.figure(figsize=(10, 5))
+        fig = plt.figure(figsize=(6.5, 5))
 
         # Display Paxinos
         # TODO: generalize BASE_COLORS for more than 8 labels
