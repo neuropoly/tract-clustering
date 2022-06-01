@@ -18,7 +18,7 @@ import params
 
 
 # Initialize logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=params.logging_mode)
 
 # seaborn fig params
 sns.set(font_scale=1.4)

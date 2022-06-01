@@ -2,6 +2,8 @@
 #
 # Parameters for the tract-clustering project.
 
+import logging
+
 
 # PARAMETERS THAT ARE SPECIFIC TO THE INPUT DATA
 # ======================================================================================================================
@@ -60,6 +62,8 @@ reference_level = {
 
 # PARAMETERS THAT ARE USED INTERNALLY BY THE CODE
 # ======================================================================================================================
+
+logging_mode = logging.INFO  # logging.DEBUG ; logging.INFO
 
 file_prefix_all = 'AtlasRat_AllMetrics_'
 file_mask_prefix = 'AtlasRat_mask_WM_'
