@@ -13,14 +13,18 @@ import nibabel as nib
 import params
 import logging
 
-def generate_intensity_list(n):
-    start = 0.2
-    end = 1
-    if n < 2:
-        raise Exception("behaviour not defined for n<2")
-    step = (end - start) / float(n - 1)
-    intensity_list = [(round((start + x * step), 2)) for x in range(n)]
-    return intensity_list
+
+def generate_intensity_list(list_score):
+    """
+    Generate intensities between 0.2 and 1, scaled based on the overlap score.
+    :param list_score:
+    :return: list_intensity
+    """
+    min_intensity = 0.2
+    # Normalize between 0 and 1
+    list_intensity = [min_intensity + (i - min(list_score)) * (1 - min_intensity) / (max(list_score) - min(list_score))
+                      for i in list_score]
+    return list_intensity
 
 
 def get_best_matching_color_with_paxinos(im=None, imref=None):
@@ -41,7 +45,8 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
             score.append(np.sum(np.multiply(im[..., i_label], imref[..., i])))
         max_index.append(np.argmax(score))
         max_score.append(np.max(score))
-        logging.debug("Clustering label: #{} | Ref label: #{} | Color: {} | Scores: {}".format(i_label, np.argmax(score), list(params.colors.keys())[np.argmax(score)], score))
+        logging.debug("Clustering label: #{} | Ref label: #{} | Color: {} | Scores: {}".
+                      format(i_label, np.argmax(score), list(params.colors.keys())[np.argmax(score)], score))
         # Find the clustering labels that correspond to this Paxinos label
         # list_color --> color for clustering labels
         list_color.append(list(params.colors.keys())[np.argmax(score)])
@@ -54,9 +59,9 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
         # list_intensity --> intensity value for clustering labels
         if index_matched:
             values_list_intensity = []
-            # Normalize the scores of the matched labels between 0.2 and 1
+            # Normalize the scores of the matched labels between 0.2 and 1 using the overlap score
             if len(index_matched) > 1:
-                values_list_intensity = generate_intensity_list(len(index_matched))
+                values_list_intensity = generate_intensity_list([max_score[i] for i in index_matched])
             # If there is only one score, set intensity value to 1
             else:
                 values_list_intensity.append(1.0)
