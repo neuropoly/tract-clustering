@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 
 # Perform clustering slicewise and generate figure comparing clustering across slices with Watson atlas
-
+import logging
 import os
 import seaborn as sns
 from matplotlib.pylab import *
@@ -32,7 +32,7 @@ path_output_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPU
 if os.path.exists(path_output_folder_results_clustering):
     shutil.rmtree(path_output_folder_results_clustering)
 os.makedirs(path_output_folder_results_clustering)
-os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
+os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.OUTPUT_FOLDER_PROCESSING))
 
 # Define spinal levels from params.
 levels = []
@@ -143,6 +143,7 @@ for level in levels:
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
+                    logging.debug(f"i_label: {i_label}, ix: {ix}, iy: {iy}")
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * (list_intensity[i_label]))
             ax2.imshow(rot90(labels_rgb), aspect="auto")
         plt.axis('off')

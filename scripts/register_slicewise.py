@@ -240,7 +240,7 @@ for region, levels in params.regions.items():
                                      copy_moving=True)
 
 # Concatenate data for each region, according to: (x, y, z, metric)
-os.makedirs(params.folder_concat_region, exist_ok=True)
+os.makedirs(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region), exist_ok=True)
 list_paxinos_3d_files = [s for s in params.input_file_prefix if 'Paxinos' in s]
 for region, levels in params.regions.items():
     print("\033[1;35mConcatenate region: " + region + "...\033[0;0m")
@@ -251,14 +251,16 @@ for region, levels in params.regions.items():
             nii2d = nib.Nifti1Image.load(params.file_prefix + metric + '_' + level + '_to_' + params.reference_level[region] + ext)
             data4d[:, :, levels.index(level), params.metrics.index(metric)] = nii2d.get_fdata()
     nii4d = nib.Nifti1Image(data4d, nii2d.affine, nii2d.header)
-    nib.save(nii4d, os.path.join(params.folder_concat_region, params.file_prefix_all + region + ext))
+    nib.save(nii4d, os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region,
+                                 params.file_prefix_all + region + ext))
     # Save mask
     data3d = np.zeros([nx, ny, len(levels)])
     for level in levels:
         nii2d = nib.Nifti1Image.load(params.file_prefix + 'mask_WM' + '_' + level + '_to_' + params.reference_level[region] + ext)
         data3d[:, :, levels.index(level)] = nii2d.get_fdata()
     nii3d = nib.Nifti1Image(data3d, nii2d.affine, nii2d.header)
-    nib.save(nii3d, os.path.join(params.folder_concat_region, params.file_mask_prefix + region + ext))
+    nib.save(nii3d, os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region,
+                                 params.file_mask_prefix + region + ext))
     # Save Paxinos atlas into 4d file
     data4d = np.zeros([nx, ny, len(levels), len(list_paxinos_3d_files)])
     for tract in list_paxinos_3d_files:
@@ -266,7 +268,8 @@ for region, levels in params.regions.items():
             nii2d = nib.Nifti1Image.load(tract + '_' + level + '_to_' + params.reference_level[region] + ext)
             data4d[:, :, levels.index(level), list_paxinos_3d_files.index(tract)] = nii2d.get_fdata()
     nii4d = nib.Nifti1Image(data4d, nii2d.affine, nii2d.header)
-    nib.save(nii4d, os.path.join(params.folder_concat_region, params.file_paxinos + '_' + region + ext))
+    nib.save(nii4d, os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region,
+                                 params.file_paxinos + '_' + region + ext))
 
 # Remove temporary Paxinos files
 for file_paxinos in list_paxinos_3d_files:

@@ -42,7 +42,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
             score.append(np.sum(np.multiply(im[..., i_label], imref[..., i])))
         max_index.append(np.argmax(score))
         max_score.append(np.max(score))
-        logging.debug("Clustering label: #{} | Ref label: #{} | Color: {} | Scores: {}".format(i_label, np.argmax(score), list(params.colors.keys())[np.argmax(score)], score))
+        logging.debug("Clustering label: #{} | Ref label: #{} | Color: {} | Scores: {}".format(i_label, np.argmax(score), list(params.colors.keys())[np.argmax(score)], score))
         # Find the clustering labels that correspond to this Paxinos label
         # list_color --> color for clustering labels
         list_color.append(list(params.colors.keys())[np.argmax(score)])

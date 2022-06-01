@@ -8,9 +8,11 @@
 
 FOLDER = '/Users/julien/temp/tract-clustering/AtlasRat'  # Path to folder that contains the atlas
 OUTPUT_FOLDER = 'results_clustering'
-OUTPUT_FOLDER_PROCESSING = 'processing'  # Where to put intermediate processed images
+OUTPUT_FOLDER_PROCESSING = 'processing_temp'  # Where to put intermediate processed images
+folder_concat_region = 'processing_regionwise'
+
 OUTPUT_FOLDER_SLICEWISE = 'results_clustering_slicewise'  # Where to put results of slicewise clustering
-OUTPUT_FOLDER_REGIONWISE = 'results_clustering_slicewise'  # Where to put results of region-wise clustering
+OUTPUT_FOLDER_REGIONWISE = 'results_clustering_regionwise'  # Where to put results of region-wise clustering
 
 file_prefix = 'AtlasRat_'
 
@@ -61,7 +63,6 @@ reference_level = {
 
 file_prefix_all = 'AtlasRat_AllMetrics_'
 file_mask_prefix = 'AtlasRat_mask_WM_'
-folder_concat_region = 'concat_within_region'
 
 # colors used to display the clustered tracts
 colors = {
