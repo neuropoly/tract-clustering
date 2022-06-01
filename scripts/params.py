@@ -1,12 +1,12 @@
 # #!/usr/bin/env python
 #
-# Description: Parameters for registration of tracts.
+# Parameters for the tract-clustering project.
 
 
 # PARAMETERS THAT ARE SPECIFIC TO THE INPUT DATA
 # ======================================================================================================================
 
-FOLDER = '/Users/julien/temp/tract-clustering/AtlasRat'  # Path to folder that contains all slices and all metrics
+FOLDER = '/Users/julien/temp/tract-clustering/AtlasRat'  # Path to folder that contains the atlas
 OUTPUT_FOLDER = 'results'
 OUTPUT_FOLDER_SLICEWISE = 'clustering_slicewise'
 
