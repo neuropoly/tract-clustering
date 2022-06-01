@@ -135,7 +135,8 @@ for level in levels:
         plt.axis('off')
         plt.title("Paxinos atlas")
         # Find label color corresponding best to the Paxinos atlas
-        list_color, list_intensity = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
+
+         = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
         # Display clustering
         ax2 = fig.add_subplot(1, 2, 1)

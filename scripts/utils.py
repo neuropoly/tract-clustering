@@ -33,7 +33,6 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     """
     list_color = []
     max_score, max_index = [], []
-    list_intensity = []
     # Loop across labels from clustering image, compute overlap and assign color
     for i_label in range(im.shape[2]):
         score = []
@@ -47,8 +46,10 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
         # list_color --> color for clustering labels
         list_color.append(list(params.colors.keys())[np.argmax(score)])
 
-    # Loop across labels from clustering image and assign intensity based on computed overlap score
-    for i_label in range(im.shape[2]):
+    # Loop across labels from clustering image (im) and if the label appears more than once (ie: same color for the
+    # label), assign various intensity values to be able to distinguish them.
+    list_intensity = []
+    for i_label in range(imref.shape[2]):
         index_matched = list(np.where(np.array(max_index) == i_label)[0])
         # list_intensity --> intensity value for clustering labels
         if index_matched:
@@ -60,7 +61,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
             else:
                 values_list_intensity.append(1.0)
             for index_position in index_matched:
-                list_intensity.insert(index_position,values_list_intensity[index_matched.index(index_position)])
+                list_intensity.insert(index_position, values_list_intensity[index_matched.index(index_position)])
 
     logging.debug("Selected colors: {}".format(list_color))
     logging.debug("Selected intensities: {}".format(list_intensity))
