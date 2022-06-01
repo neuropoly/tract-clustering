@@ -180,8 +180,8 @@ def split_paxinos_into_3d_files(file_paxinos):
 
 ext = '.nii'  # .nii or .nii.gz
 
-os.makedirs(os.path.join(params.FOLDER, params.OUTPUT_FOLDER), exist_ok=True)
-os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER))
+os.makedirs(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.OUTPUT_FOLDER_PROCESSING), exist_ok=True)
+os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.OUTPUT_FOLDER_PROCESSING))
 
 Cervical_list = []
 Thoracic_list = []

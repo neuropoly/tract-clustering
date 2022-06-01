@@ -28,6 +28,11 @@ pip install -e .
 
 Edit the script `scripts/params.py` and update variables according to your files location
 
+Run registration:
+~~~
+python register_slicewise.py
+~~~
+
 Slice-wise clustering:
 ~~~
 python clustering_slicewise.py
@@ -35,8 +40,6 @@ python clustering_slicewise.py
 
 Region-wise clustering:
 ~~~
-# Run registration
-python register_slicewise.py
 # Run clustering
 python clustering.py
 ~~~

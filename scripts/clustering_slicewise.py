@@ -3,10 +3,7 @@
 # Perform clustering slicewise and generate figure comparing clustering across slices with Watson atlas
 
 import os
-import sys
 import seaborn as sns
-import numpy as np
-import logging
 from matplotlib.pylab import *
 from matplotlib import pyplot as plt
 from matplotlib import colors
@@ -14,7 +11,6 @@ import nibabel as nib
 from sklearn.cluster import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.image import grid_to_graph
-from sklearn.metrics import mutual_info_score
 import shutil
 
 from utils import get_best_matching_color_with_paxinos
@@ -32,7 +28,7 @@ np.set_printoptions(threshold=np.inf)
 ext = '.nii'
 
 # Deal with output folder
-path_output_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPUT_FOLDER,params.OUTPUT_FOLDER_SLICEWISE)
+path_output_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.OUTPUT_FOLDER_SLICEWISE)
 if os.path.exists(path_output_folder_results_clustering):
     shutil.rmtree(path_output_folder_results_clustering)
 os.makedirs(path_output_folder_results_clustering)
