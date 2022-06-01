@@ -28,7 +28,8 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
     Find the color index for im that corresponds to the tract of imref with the maximum overlap
     :param im: numpy.array: X, Y, TRACT
     :param imref: numpy.array: 3D image with tract to match: X, Y, TRACT
-    :return: list: RGB color
+    :return: list_color: RGB color
+    :return: list_intensity: List of intensity. Same size as list_color.
     """
     list_color = []
     max_score, max_index = [], []
