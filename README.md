@@ -1,37 +1,39 @@
 # tract-clustering
-Data-driven approach for tracts in rat histology
+Data-driven approach for identifying white matter tracts in quantitative histology of the spinal cord. This 
+code was applied to the rat spinal cord, but it could equally be applied to other species.
 
 ## Dependency
 
 - Python 3.7 (conda distribution)
 - [ANTs](http://stnava.github.io/ANTs/)
 
-## How to use
+## Getting started
 
-Data: 
-- Download the [RatAtlas](https://osf.io/g7kx8/). For more information about how this dataset was generated, see [Saliani et al. Neuroimage 2019](https://www.ncbi.nlm.nih.gov/pubmed/31491525). 
-- Unzip
+### Data
 
-Code:
-- Download this repository:
+Download the [RatAtlas](https://osf.io/g7kx8/). For more information about how this dataset was generated, see [Saliani et al. Neuroimage 2019](https://www.ncbi.nlm.nih.gov/pubmed/31491525). 
+
+### Code
+
+Download this repository:
 ~~~
 git clone https://github.com/neuropoly/tract-clustering.git
 ~~~
 
-- Install package and dependencies
+Install package and dependencies:
 ~~~
 cd tract-clustering
 pip install -e .
 ~~~
 
-- Edit the script `scripts/params.py` and update variables according to your files location
+Edit the script `scripts/params.py` and update variables according to your files location
 
-- Slice-wise clustering:
+Slice-wise clustering:
 ~~~
 python clustering_slicewise.py
 ~~~
 
-- Region-wise clustering:
+Region-wise clustering:
 ~~~
 # Run registration
 python register_slicewise.py
