@@ -35,12 +35,12 @@ def preprocess_file(file_moving, file_fixed, metric=None):
     nii_fixed = nib.load(file_fixed)
 
     # Select the metric you want
-    data_moving = nii_moving.get_data()
+    data_moving = nii_moving.get_fdata()
     data_moving = data_moving.transpose((1, 0, 2, 3))
     data_moving = data_moving.squeeze(axis=2)
     data_moving = data_moving[..., params.input_file_prefix.index(metric)]
 
-    data_fixed = nii_fixed.get_data()
+    data_fixed = nii_fixed.get_fdata()
     data_fixed = data_fixed.transpose((1, 0, 2, 3))
     data_fixed = data_fixed.squeeze(axis=2)
     data_fixed = data_fixed[..., params.input_file_prefix.index(metric)]
@@ -139,10 +139,10 @@ def split_each_3d_volume_across_z_and_concatenate_metrics_along_t(list_files, le
     for file in list_files:
         list_nii.append(nib.Nifti1Image.load(file))
 
-    nz = list_nii[0].get_data().shape[2]
+    nz = list_nii[0].get_fdata().shape[2]
     for i_z in range(nz):
         data_2d_metrics = \
-            np.stack([list_nii[i].get_data()[:, :, i_z, np.newaxis] for i in range(len(list_files))], axis=3)
+            np.stack([list_nii[i].get_fdata()[:, :, i_z, np.newaxis] for i in range(len(list_files))], axis=3)
         nii_metric = nib.Nifti1Image(data_2d_metrics, list_nii[0].affine, list_nii[0].header)
         nib.save(nii_metric, params.file_prefix_all + '{}'.format(level_array_list_flat[i_z]))
 
@@ -161,7 +161,7 @@ def split_paxinos_into_3d_files(file_paxinos):
         # return input_file_prefix
     # open file
     nii4d = nib.Nifti1Image.load(file_paxinos)
-    data4d = nii4d.get_data()
+    data4d = nii4d.get_fdata()
     # Loop across 4th dimension and save 3d file
     for i_label in range(nii4d.shape[3]):
         nii3d = nib.Nifti1Image(data4d[:, :, :, i_label], nii4d.affine, nii4d.header)
@@ -249,14 +249,14 @@ for region, levels in params.regions.items():
     for metric in params.metrics:
         for level in levels:
             nii2d = nib.Nifti1Image.load(params.file_prefix + metric + '_' + level + '_to_' + params.reference_level[region] + ext)
-            data4d[:, :, levels.index(level), params.metrics.index(metric)] = nii2d.get_data()
+            data4d[:, :, levels.index(level), params.metrics.index(metric)] = nii2d.get_fdata()
     nii4d = nib.Nifti1Image(data4d, nii2d.affine, nii2d.header)
     nib.save(nii4d, os.path.join(params.folder_concat_region, params.file_prefix_all + region + ext))
     # Save mask
     data3d = np.zeros([nx, ny, len(levels)])
     for level in levels:
         nii2d = nib.Nifti1Image.load(params.file_prefix + 'mask_WM' + '_' + level + '_to_' + params.reference_level[region] + ext)
-        data3d[:, :, levels.index(level)] = nii2d.get_data()
+        data3d[:, :, levels.index(level)] = nii2d.get_fdata()
     nii3d = nib.Nifti1Image(data3d, nii2d.affine, nii2d.header)
     nib.save(nii3d, os.path.join(params.folder_concat_region, params.file_mask_prefix + region + ext))
     # Save Paxinos atlas into 4d file
@@ -264,7 +264,7 @@ for region, levels in params.regions.items():
     for tract in list_paxinos_3d_files:
         for level in levels:
             nii2d = nib.Nifti1Image.load(tract + '_' + level + '_to_' + params.reference_level[region] + ext)
-            data4d[:, :, levels.index(level), list_paxinos_3d_files.index(tract)] = nii2d.get_data()
+            data4d[:, :, levels.index(level), list_paxinos_3d_files.index(tract)] = nii2d.get_fdata()
     nii4d = nib.Nifti1Image(data4d, nii2d.affine, nii2d.header)
     nib.save(nii4d, os.path.join(params.folder_concat_region, params.file_paxinos + '_' + region + ext))
 
