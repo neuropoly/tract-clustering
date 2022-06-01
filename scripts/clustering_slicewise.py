@@ -133,10 +133,8 @@ for level in levels:
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
             ax.imshow(np.fliplr(rot90(labels_rgb)), aspect="auto")
         plt.axis('off')
-        plt.title("Paxinos atlas")
         # Find label color corresponding best to the Paxinos atlas
-
-         = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
+        list_color, list_intensity = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
 
         # Display clustering
         ax2 = fig.add_subplot(1, 2, 1)
@@ -148,7 +146,6 @@ for level in levels:
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * (list_intensity[i_label]))
             ax2.imshow(rot90(labels_rgb), aspect="auto")
         plt.axis('off')
-        plt.title("Cluster map")
         plt.tight_layout()
         fig.subplots_adjust(hspace=0, wspace=0.01)
         fig.savefig(os.path.join(path_output_folder_results_clustering,
@@ -157,6 +154,3 @@ for level in levels:
         plt.close()
 
     logging.info("Done!")
-
-
-# # TODO: __main__ to make it callable via CLI
