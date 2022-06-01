@@ -188,7 +188,7 @@ def generate_clustering_per_region(region):
 
 ext = '.nii'
 
-os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.folder_concat_region))
+os.chdir(os.path.join(params.folder, params.folder_output, params.folder_concat_region))
 
 # Load files per region
 for region, levels in params.regions.items():

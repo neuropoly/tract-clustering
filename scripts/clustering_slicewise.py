@@ -28,11 +28,11 @@ np.set_printoptions(threshold=np.inf)
 ext = '.nii'
 
 # Deal with output folder
-path_output_folder_results_clustering = os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.OUTPUT_FOLDER_SLICEWISE)
+path_output_folder_results_clustering = os.path.join(params.folder, params.folder_output, params.folder_clustering_slicewise)
 if os.path.exists(path_output_folder_results_clustering):
     shutil.rmtree(path_output_folder_results_clustering)
 os.makedirs(path_output_folder_results_clustering)
-os.chdir(os.path.join(params.FOLDER, params.OUTPUT_FOLDER, params.OUTPUT_FOLDER_PROCESSING))
+os.chdir(os.path.join(params.folder, params.folder_output, params.folder_processing))
 
 # Define spinal levels from params.
 levels = []

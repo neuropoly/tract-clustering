@@ -6,13 +6,13 @@
 # PARAMETERS THAT ARE SPECIFIC TO THE INPUT DATA
 # ======================================================================================================================
 
-FOLDER = '/Users/julien/temp/tract-clustering/AtlasRat'  # Path to folder that contains the atlas
-OUTPUT_FOLDER = 'results_clustering'
-OUTPUT_FOLDER_PROCESSING = 'processing_temp'  # Where to put intermediate processed images
+folder = '/Users/julien/temp/tract-clustering/AtlasRat'  # Path to folder that contains the atlas
+folder_output = 'results_clustering'  # Main output folder for tract-clustering pipeline
+folder_processing = 'processing_temp'  # Where to put intermediate processed images
 folder_concat_region = 'processing_regionwise'
 
-OUTPUT_FOLDER_SLICEWISE = 'results_clustering_slicewise'  # Where to put results of slicewise clustering
-OUTPUT_FOLDER_REGIONWISE = 'results_clustering_regionwise'  # Where to put results of region-wise clustering
+folder_clustering_slicewise = 'results_clustering_slicewise'  # Where to put results of slicewise clustering
+folder_clustering_regionwise = 'results_clustering_regionwise'  # Where to put results of region-wise clustering
 
 file_prefix = 'AtlasRat_'
 
