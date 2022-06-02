@@ -16,7 +16,7 @@ with open(req_path, "r") as f:
 
 setup(
     name='Tract-Clustering',
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     description='Create clustering from histology samples',
     url='https://github.com/neuropoly/tract-clustering',
     author='NeuroPoly Lab, Polytechnique Montreal',
@@ -28,22 +28,5 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     keywords='',
-    # packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=install_reqs,
-    # package_dir={'AxonDeepSeg': 'AxonDeepSeg'},
-    # package_data={
-    #     "AxonDeepSeg": ['models/default_SEM_model_v1/*',
-    #                     'models/default_TEM_model_v1/*',
-    #                     'data_test/*'],
-    # },
-    # extras_require={
-    #     'docs': ['sphinx>=1.6',
-    #              'sphinx_rtd_theme>=0.2.4'],
-    # },
-    # include_package_data=True,
-    # entry_points={
-    #     'console_scripts': [
-    #         'axondeepseg = AxonDeepSeg.segment:main','axondeepseg_test = AxonDeepSeg.integrity_test:integrity_test'
-    #     ],
-    # },
 )
