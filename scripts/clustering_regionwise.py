@@ -1,6 +1,7 @@
 # #!/usr/bin/env python
 
 # Apply clustering on processed rat atlas metrics.
+# TODO: remove seaborn
 
 import os
 import sys
@@ -11,6 +12,7 @@ from matplotlib.pylab import *
 from matplotlib import pyplot as plt
 from matplotlib import colors
 import nibabel as nib
+import shutil
 from sklearn.cluster import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.image import grid_to_graph
@@ -103,7 +105,7 @@ def generate_clustering_per_region(region):
 
     # Perform clustering
     logging.info("Run clustering...")
-    num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [8]  # [5, 6, 7, 8, 9, 10, 11]
 
     for n_cluster in num_clusters:
         logging.info("Number of clusters: {}".format(n_cluster))
@@ -173,7 +175,9 @@ def generate_clustering_per_region(region):
         plt.title("Cluster map", pad=18)
         plt.tight_layout()
         fig.subplots_adjust(hspace=0, wspace=0.1)
-        fig.savefig('clustering_results_avgz_{}_ncluster{}.png'.format(region, n_cluster))
+        fig.savefig(os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise,
+                                 'clustering_results_avgz_{}_ncluster{}.png'.format(region, n_cluster)),
+                    transparent=True)
 
     del data2d_norm
 
@@ -184,6 +188,12 @@ def generate_clustering_per_region(region):
 # ======================================================================================================================
 
 ext = '.nii'
+
+# Deal with output folder
+path_output = os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise)
+if os.path.exists(path_output):
+    shutil.rmtree(path_output)
+os.makedirs(path_output)
 
 os.chdir(os.path.join(params.folder, params.folder_output, params.folder_concat_region))
 
