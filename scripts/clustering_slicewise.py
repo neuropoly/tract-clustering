@@ -148,8 +148,10 @@ for level in levels:
         plt.axis('off')
         plt.tight_layout()
         fig.subplots_adjust(hspace=0, wspace=0.01)
-        fig.savefig(os.path.join(path_output_folder_results_clustering,
-                                 'clustering_results_ncluster{}_{}.png'.format(n_cluster, level)))
+        fig.savefig(
+            os.path.join(path_output_folder_results_clustering,
+                         'clustering_results_ncluster{}_{}.png'.format(n_cluster, level)),
+            transparent=True)
         fig.clear()
         plt.close()
 
