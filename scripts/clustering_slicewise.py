@@ -64,8 +64,8 @@ for level in levels:
     # Crop around spinal cord, and only keep half of it.
     # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
     # we can discard one half, without loosing information.
-    xmin, xmax = (30, 75)
-    ymin, ymax = (40, 105)
+    xmin, xmax = params.xminmax
+    ymin, ymax = params.yminmax
     data_crop = data[xmin:xmax, ymin:ymax, :]
 
     # Reshape to 1d

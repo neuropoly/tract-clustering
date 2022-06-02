@@ -59,6 +59,9 @@ reference_level = {
     'sacral': 'S2',
     }
 
+xminmax = (30, 75)
+yminmax = (40, 105)
+
 
 # PARAMETERS THAT ARE USED INTERNALLY BY THE CODE
 # ======================================================================================================================

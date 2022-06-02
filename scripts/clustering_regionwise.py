@@ -49,10 +49,8 @@ def generate_clustering_per_region(region):
     # Crop around spinal cord, and only keep half of it.
     # The way the atlas was built, the right and left sides are perfectly symmetrical (mathematical average). Hence,
     # we can discard one half, without loosing information.
-    # TODO: parametrize this, and find center automatically
-    # TODO: find cropping values per region
-    xmin, xmax = (30, 75)
-    ymin, ymax = (40, 105)
+    xmin, xmax = params.xminmax
+    ymin, ymax = params.yminmax
     data_crop = data[xmin:xmax, ymin:ymax, :]
     del data
 
