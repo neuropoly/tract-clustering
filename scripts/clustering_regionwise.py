@@ -18,7 +18,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.metrics import mutual_info_score
 
-from utils import get_best_matching_color_with_paxinos
+from plotting import plot_clustering
 import params
 
 
@@ -94,6 +94,7 @@ def generate_clustering_per_region(region):
     del data_crop
 
     # Process Paxinos atlas for display
+    # TODO: use code from slicewise for paxinos
     nii_paxinos = nib.load(params.file_paxinos + '_' + region + ext)
     paxinos3d = np.mean(nii_paxinos.get_data(), axis=2)
     # Crop data
@@ -126,8 +127,9 @@ def generate_clustering_per_region(region):
             plt.title("iz = {}".format(i), pad=18)
             plt.tight_layout()
         fig.savefig(os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise,
-                                 'clustering_results_ncluster{}_{}.png'.format(n_cluster, region)))
+                                 'clustering_allslices_ncluster{}_{}.png'.format(n_cluster, region)))
         fig.clear()
+        plt.close()
 
         # Create 4D array: last dimension corresponds to the cluster number. Cluster value is converted to 1.
         a = list(labels.shape)
@@ -141,47 +143,49 @@ def generate_clustering_per_region(region):
         # Average across Z. Each cluster is coded between 0 and 1.
         labels3d = np.mean(labels4d, axis=2)
 
-        # Display result of averaging
-        logging.info("Generate figures...")
-        fig = plt.figure(figsize=(7, 7))
-        fig.suptitle('Averaged clusters (N={}) | Region: {}'.format(n_cluster, region), fontsize=20)
+        plot_clustering(labels3d, paxinos3d, n_cluster, region, path_output)
 
-        # Display Paxinos
-        # TODO: generalize BASE_COLORS for more than 8 labels
-        ax = fig.add_subplot(1, 2, 1)
-        ax.set_facecolor((1, 1, 1))
-        for i_label in range(paxinos3d.shape[2]):
-            labels_rgb = np.zeros([paxinos3d.shape[0], paxinos3d.shape[1], 4])
-            for ix in range(paxinos3d.shape[0]):
-                for iy in range(paxinos3d.shape[1]):
-                    ind_color = list(params.colors.keys())[i_label]
-                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
-            ax.imshow(labels_rgb)
-        plt.axis('off')
-        plt.title("Paxinos atlas", pad=18)
-        plt.tight_layout()
-
-        # Find label color corresponding best to the Paxinos atlas
-        list_color = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
-
-        # Display clustering
-        ax = fig.add_subplot(1, 2, 2)
-        for i_label in range(n_cluster):
-            labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
-            for ix in range(labels3d.shape[0]):
-                for iy in range(labels3d.shape[1]):
-                    ind_color = list(params.colors.keys())[i_label]
-                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], labels3d[ix, iy, i_label])
-            ax.imshow(labels_rgb)
-        plt.axis('off')
-        plt.title("Cluster map", pad=18)
-        plt.tight_layout()
-        fig.subplots_adjust(hspace=0, wspace=0.1)
-        fig.savefig(os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise,
-                                 'clustering_results_avgz_{}_ncluster{}.png'.format(region, n_cluster)),
-                    transparent=True)
-
-    del data2d_norm
+    #     # Display result of averaging
+    #     logging.info("Generate figures...")
+    #     fig = plt.figure(figsize=(7, 7))
+    #     fig.suptitle('Averaged clusters (N={}) | Region: {}'.format(n_cluster, region), fontsize=20)
+    #
+    #     # Display Paxinos
+    #     # TODO: generalize BASE_COLORS for more than 8 labels
+    #     ax = fig.add_subplot(1, 2, 1)
+    #     ax.set_facecolor((1, 1, 1))
+    #     for i_label in range(paxinos3d.shape[2]):
+    #         labels_rgb = np.zeros([paxinos3d.shape[0], paxinos3d.shape[1], 4])
+    #         for ix in range(paxinos3d.shape[0]):
+    #             for iy in range(paxinos3d.shape[1]):
+    #                 ind_color = list(params.colors.keys())[i_label]
+    #                 labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], paxinos3d[ix, iy, i_label])
+    #         ax.imshow(labels_rgb)
+    #     plt.axis('off')
+    #     plt.title("Paxinos atlas", pad=18)
+    #     plt.tight_layout()
+    #
+    #     # Find label color corresponding best to the Paxinos atlas
+    #     list_color = get_best_matching_color_with_paxinos(im=labels3d, imref=paxinos3d)
+    #
+    #     # Display clustering
+    #     ax = fig.add_subplot(1, 2, 2)
+    #     for i_label in range(n_cluster):
+    #         labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
+    #         for ix in range(labels3d.shape[0]):
+    #             for iy in range(labels3d.shape[1]):
+    #                 ind_color = list(params.colors.keys())[i_label]
+    #                 labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], labels3d[ix, iy, i_label])
+    #         ax.imshow(labels_rgb)
+    #     plt.axis('off')
+    #     plt.title("Cluster map", pad=18)
+    #     plt.tight_layout()
+    #     fig.subplots_adjust(hspace=0, wspace=0.1)
+    #     fig.savefig(os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise,
+    #                              'clustering_results_avgz_{}_ncluster{}.png'.format(region, n_cluster)),
+    #                 transparent=True)
+    #
+    # del data2d_norm
 
     logging.info("Done!")
 
