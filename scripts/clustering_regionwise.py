@@ -91,7 +91,7 @@ def generate_clustering_per_region(region):
 
     # Perform clustering
     logging.info("Run clustering...")
-    num_clusters = [8]  # [5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [8, 10, 15, 20]  # [5, 6, 7, 8, 9, 10, 11]
 
     for n_cluster in num_clusters:
         logging.info("Number of clusters: {}".format(n_cluster))
