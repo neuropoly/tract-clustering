@@ -99,7 +99,7 @@ for level in levels:
 
     # Perform clustering
     logging.info("Run clustering...")
-    num_clusters = [8] #[5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [5, 6, 7, 8, 9, 10, 11]
     for n_cluster in num_clusters:
         logging.info("Number of clusters: {}".format(n_cluster))
         clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
@@ -142,7 +142,7 @@ for level in levels:
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
-                    logging.debug(f"i_label: {i_label}, ix: {ix}, iy: {iy}")
+                    logging.debug(f"level: {level}, i_label: {i_label}, ix: {ix}, iy: {iy}")
                     labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label] * (list_intensity[i_label]))
             ax2.imshow(rot90(labels_rgb), aspect="equal")
         plt.axis('off')

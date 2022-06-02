@@ -24,6 +24,8 @@ def generate_intensity_list(list_score):
     # Normalize between 0 and 1
     list_intensity = [min_intensity + (i - min(list_score)) * (1 - min_intensity) / (max(list_score) - min(list_score))
                       for i in list_score]
+    # Deal with precision issues
+    list_intensity = [np.clip(i, min_intensity, 1) for i in list_intensity]
     return list_intensity
 
 
