@@ -26,7 +26,7 @@ logging.basicConfig(level=params.logging_mode)
 np.set_printoptions(threshold=np.inf)
 
 
-def generate_clustering_per_region(region):
+def generate_clustering_per_region(region, levels):
     """
     Generate clustering from a series of 2D slices pertaining to a region (e.g. cervical)
     :param region:
@@ -91,7 +91,7 @@ def generate_clustering_per_region(region):
 
     # Perform clustering
     logging.info("Run clustering...")
-    num_clusters = [8, 10, 15, 20]  # [5, 6, 7, 8, 9, 10, 11]
+    num_clusters = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]  # [5, 6, 7, 8, 9, 10, 11]
 
     for n_cluster in num_clusters:
         logging.info("Number of clusters: {}".format(n_cluster))
@@ -149,4 +149,4 @@ os.chdir(os.path.join(params.folder, params.folder_output, params.folder_concat_
 # Load files per region
 for region, levels in params.regions.items():
     logging.info('\nProcessing region: {}'.format(region))
-    generate_clustering_per_region(region)
+    generate_clustering_per_region(region, levels)
