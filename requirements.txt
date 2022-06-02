@@ -1,5 +1,3 @@
 scipy
 nibabel
-jupyter
-seaborn
 sklearn

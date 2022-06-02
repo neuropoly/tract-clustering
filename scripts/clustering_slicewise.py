@@ -1,11 +1,8 @@
 # #!/usr/bin/env python
-
-# TODO: remove seaborn
-
 # Perform clustering slicewise and generate figure comparing clustering across slices with Watson atlas
+
 import logging
 import os
-import seaborn as sns
 from matplotlib.pylab import *
 from matplotlib import pyplot as plt
 from matplotlib import colors
@@ -23,9 +20,6 @@ import params
 # Initialize logging
 logging.basicConfig(level=params.logging_mode)
 
-# seaborn fig params
-sns.set(font_scale=1.4)
-sns.set_style("whitegrid", {'axes.grid': False})
 np.set_printoptions(threshold=np.inf)
 
 ext = '.nii'

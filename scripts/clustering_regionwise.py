@@ -5,7 +5,6 @@
 
 import os
 import sys
-import seaborn as sns
 import numpy as np
 import logging
 from matplotlib.pylab import *
@@ -24,10 +23,6 @@ import params
 
 # Initialize logging
 logging.basicConfig(level=params.logging_mode)
-
-# seaborn fig params
-sns.set(font_scale=1.4)
-sns.set_style("whitegrid", {'axes.grid' : False})
 
 np.set_printoptions(threshold=np.inf)
 
