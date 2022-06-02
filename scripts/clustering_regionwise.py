@@ -51,15 +51,8 @@ def generate_clustering_per_region(region):
     # we can discard one half, without loosing information.
     # TODO: parametrize this, and find center automatically
     # TODO: find cropping values per region
-    if region == 'cervical' or region == 'lumbar':
-        xmin, xmax = (45, 110)
-        ymin, ymax = (75, 114)
-    elif region == 'thoracic':
-        xmin, xmax = (53, 100)
-        ymin, ymax = (75, 105)
-    else:
-        xmin, xmax = (55, 94)
-        ymin, ymax = (75, 95)
+    xmin, xmax = (30, 75)
+    ymin, ymax = (40, 105)
     data_crop = data[xmin:xmax, ymin:ymax, :]
     del data
 
