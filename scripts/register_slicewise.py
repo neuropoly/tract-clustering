@@ -36,14 +36,16 @@ def preprocess_file(file_moving, file_fixed, metric=None):
 
     # Select the metric you want
     data_moving = nii_moving.get_fdata()
-    data_moving = data_moving.transpose((1, 0, 2, 3))
-    data_moving = data_moving.squeeze(axis=2)
-    data_moving = data_moving[..., params.input_file_prefix.index(metric)]
+    data_moving = np.squeeze(data_moving[..., params.input_file_prefix.index(metric)])
+    # data_moving = data_moving.transpose((1, 0, 2, 3))
+    # data_moving = data_moving.squeeze(axis=2)
+    # data_moving = data_moving[..., params.input_file_prefix.index(metric)]
 
     data_fixed = nii_fixed.get_fdata()
-    data_fixed = data_fixed.transpose((1, 0, 2, 3))
-    data_fixed = data_fixed.squeeze(axis=2)
-    data_fixed = data_fixed[..., params.input_file_prefix.index(metric)]
+    data_fixed = np.squeeze(data_fixed[..., params.input_file_prefix.index(metric)])
+    # data_fixed = data_fixed.transpose((1, 0, 2, 3))
+    # data_fixed = data_fixed.squeeze(axis=2)
+    # data_fixed = data_fixed[..., params.input_file_prefix.index(metric)]
 
     # Create a new file for each file, name it "{}_pre.nii.gz".format(p)
     nii_moving_new = nib.Nifti1Image(data_moving, nii_moving.affine, nii_moving.header)
