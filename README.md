@@ -41,5 +41,5 @@ python clustering_slicewise.py
 Region-wise clustering:
 ~~~
 # Run clustering
-python clustering.py
+python clustering_regionwise.py
 ~~~
