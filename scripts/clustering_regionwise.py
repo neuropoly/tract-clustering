@@ -21,10 +21,7 @@ import params
 
 
 # Initialize logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # default: logging.DEBUG, logging.INFO
-hdlr = logging.StreamHandler(sys.stdout)
-logging.root.addHandler(hdlr)
+logging.basicConfig(level=params.logging_mode)
 
 # seaborn fig params
 sns.set(font_scale=1.4)
@@ -43,7 +40,7 @@ def generate_clustering_per_region(region):
     use_mask = True
 
     # Load data
-    logger.info("Load data...")
+    logging.info("Load data...")
     nii = nib.load(params.file_prefix_all + region + ext)
     data = nii.get_fdata()
 
@@ -78,7 +75,7 @@ def generate_clustering_per_region(region):
     mask1d = np.squeeze(mask_crop.reshape(-1, 1))
 
     # Standardize data
-    logger.info("Standardize data...")
+    logging.info("Standardize data...")
     # original_shape = data_crop.shape[0:3]
     data2d = data_crop.reshape(-1, data_crop.shape[3])
     scaler = StandardScaler()
@@ -86,7 +83,7 @@ def generate_clustering_per_region(region):
     del data2d
 
     # Build connectivity matrix
-    logger.info("Build connectivity matrix...")
+    logging.info("Build connectivity matrix...")
     connectivity = grid_to_graph(n_x=data_crop.shape[0],
                                  n_y=data_crop.shape[1],
                                  n_z=data_crop.shape[2],
@@ -105,20 +102,20 @@ def generate_clustering_per_region(region):
     # TODO: crop Paxinos
 
     # Perform clustering
-    logger.info("Run clustering...")
+    logging.info("Run clustering...")
     num_clusters = [8, 10]  # [5, 6, 7, 8, 9, 10, 11]
 
     for n_cluster in num_clusters:
-        logger.info("Number of clusters: {}".format(n_cluster))
+        logging.info("Number of clusters: {}".format(n_cluster))
         clustering = AgglomerativeClustering(linkage="ward", n_clusters=n_cluster, connectivity=connectivity)
         clustering.fit(data2d_norm[mask1d, :])
-        logger.info("Reshape labels...")
+        logging.info("Reshape labels...")
         labels = np.zeros_like(mask_crop, dtype=np.int)
         labels[ind_mask] = clustering.labels_ + 1  # we add a the +1 because sklearn's first label has value "0", and we are now going to use "0" as the background (i.e. not a label)
         del clustering
 
         # Display clustering results
-        logger.info("Generate figures...")
+        logging.info("Generate figures...")
         fig = plt.figure(figsize=(20, 20))
         fig.subplots_adjust(hspace=0.1, wspace=0.1)
         for i in range(len(levels)):
@@ -142,7 +139,7 @@ def generate_clustering_per_region(region):
         labels3d = np.mean(labels4d, axis=2)
 
         # Display result of averaging
-        logger.info("Generate figures...")
+        logging.info("Generate figures...")
         fig = plt.figure(figsize=(7, 7))
         fig.suptitle('Averaged clusters (N={}) | Region: {}'.format(n_cluster, region), fontsize=20)
 
@@ -180,7 +177,7 @@ def generate_clustering_per_region(region):
 
     del data2d_norm
 
-    logger.info("Done!")
+    logging.info("Done!")
 
 
 # SCRIPT STARTS HERE
@@ -192,5 +189,5 @@ os.chdir(os.path.join(params.folder, params.folder_output, params.folder_concat_
 
 # Load files per region
 for region, levels in params.regions.items():
-    logger.info('\nProcessing region: {}'.format(region))
+    logging.info('\nProcessing region: {}'.format(region))
     generate_clustering_per_region(region)
