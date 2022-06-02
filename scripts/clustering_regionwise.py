@@ -125,7 +125,8 @@ def generate_clustering_per_region(region):
             ax.imshow(labels[:, :, i], cmap='Spectral')
             plt.title("iz = {}".format(i), pad=18)
             plt.tight_layout()
-        fig.savefig('clustering_results_ncluster{}_{}.png'.format(n_cluster, region))
+        fig.savefig(os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise,
+                                 'clustering_results_ncluster{}_{}.png'.format(n_cluster, region)))
         fig.clear()
 
         # Create 4D array: last dimension corresponds to the cluster number. Cluster value is converted to 1.
@@ -169,7 +170,8 @@ def generate_clustering_per_region(region):
             labels_rgb = np.zeros([labels3d.shape[0], labels3d.shape[1], 4])
             for ix in range(labels3d.shape[0]):
                 for iy in range(labels3d.shape[1]):
-                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[list_color[i_label]], labels3d[ix, iy, i_label])
+                    ind_color = list(params.colors.keys())[i_label]
+                    labels_rgb[ix, iy] = colors.to_rgba(params.colors[ind_color], labels3d[ix, iy, i_label])
             ax.imshow(labels_rgb)
         plt.axis('off')
         plt.title("Cluster map", pad=18)
