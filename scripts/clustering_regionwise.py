@@ -96,7 +96,7 @@ def generate_clustering_per_region(region):
     # Process Paxinos atlas for display
     # TODO: use code from slicewise for paxinos
     nii_paxinos = nib.load(params.file_paxinos + '_' + region + ext)
-    paxinos3d = np.mean(nii_paxinos.get_data(), axis=2)
+    paxinos3d = np.mean(nii_paxinos.get_fdata(), axis=2)
     # Crop data
     paxinos3d = paxinos3d[xmin:xmax, ymin:ymax, :]
     # clip between 0 and 1.
