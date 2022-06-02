@@ -114,7 +114,7 @@ def generate_clustering_per_region(region):
         fig.subplots_adjust(hspace=0.1, wspace=0.1)
         for i in range(len(levels)):
             ax = fig.add_subplot(4, 4, i+1)
-            ax.imshow(labels[:, :, i], cmap='Spectral')
+            ax.imshow(np.transpose(labels[:, :, i]), cmap='Spectral')
             plt.title("iz = {}".format(i), pad=18)
             plt.tight_layout()
         fig.savefig(os.path.join(params.folder, params.folder_output, params.folder_clustering_regionwise,
