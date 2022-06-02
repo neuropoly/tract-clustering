@@ -55,7 +55,7 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
 
     # Loop across labels from clustering image (im) and if the label appears more than once (ie: same color for the
     # label), assign various intensity values to be able to distinguish them.
-    list_intensity = []
+    list_intensity = [0] * (imref.shape[2]+1)
     for i_label in range(imref.shape[2]):
         index_matched = list(np.where(np.array(max_index) == i_label)[0])
         # list_intensity --> intensity value for clustering labels
@@ -67,8 +67,10 @@ def get_best_matching_color_with_paxinos(im=None, imref=None):
             # If there is only one score, set intensity value to 1
             else:
                 values_list_intensity.append(1.0)
-            for index_position in index_matched:
-                list_intensity.insert(index_position, values_list_intensity[index_matched.index(index_position)])
+            for i in range(len(index_matched)):
+                list_intensity[index_matched[i]] = values_list_intensity[i]
+            # for index_position in index_matched:
+            #     list_intensity.insert(index_position, values_list_intensity[index_matched.index(index_position)])
 
     logging.debug("Selected colors: {}".format(list_color))
     logging.debug("Selected intensities: {}".format(list_intensity))
