@@ -50,6 +50,7 @@ for level in levels:
     # 7: Paxinos tract 2
     # ..
     # 12: Paxinos tract 7
+    ind_metrics = [0, 2]
     logging.info("\nLoad data for level: " + level)
     nii = nib.load(params.file_prefix_all + level + ext)
 
@@ -78,7 +79,8 @@ for level in levels:
 
     # Reshape data used for clustering
     # Here, we will perform clustering on the first 5 volumes (ie: selection on the 4th dimension)
-    data2d = data_crop[:, :, 0, 0:5].reshape(-1, 5)
+
+    data2d = data_crop[:, :, 0, ind_metrics].reshape(-1, len(ind_metrics))
 
     # Standardize data
     logging.info("Standardize data...")
