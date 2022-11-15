@@ -2,6 +2,11 @@
 Data-driven approach for identifying white matter tracts in quantitative histology of the spinal cord. This 
 code was applied to the rat spinal cord, but it could equally be applied to other species.
 
+## Citation
+
+Nami H, Perone CS and Cohen-Adad J (2022) _Histology-informed automatic parcellation of white matter tracts in the rat spinal cord_.
+**Front. Neuroanat.** 16:960475. doi: [10.3389/fnana.2022.960475](https://www.frontiersin.org/articles/10.3389/fnana.2022.960475)
+
 ## Dependency
 
 - Python 3.7 (conda distribution)
