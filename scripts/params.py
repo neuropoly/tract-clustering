@@ -13,7 +13,7 @@ folder_output = 'results_clustering'  # Main output folder for tract-clustering 
 folder_processing = 'processing_temp'  # Where to put intermediate processed images
 folder_concat_region = 'processing_regionwise'
 
-folder_clustering_slicewise = 'results_clustering_slicewise'  # Where to put results of slicewise clustering
+folder_clustering_slicewise = 'results_clustering_slicewise_AD-AVF'  # Where to put results of slicewise clustering
 folder_clustering_regionwise = 'results_clustering_regionwise'  # Where to put results of region-wise clustering
 
 file_prefix = 'AtlasRat_'
